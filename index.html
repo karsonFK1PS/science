@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>十萬個為什麼：每日科學日報與科普盲盒</title>
+  <style>
+    :root {
+      --bg-color: #f0f7ff;
+      --card-front: #ffffff;
+      --primary: #2563eb;
+      --common: #10b981;
+      --rare: #8b5cf6;
+      --legend: #f59e0b;
+    }
+    * { box-sizing: border-box; font-family: "Noto Sans TC", "PingFang HK", sans-serif; }
+    body {
+      margin: 0; padding: 18px; background: var(--bg-color);
+      display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+    }
+    header { text-align: center; margin-bottom: 16px; width: 100%; max-width: 560px; }
+    h1 { color: #1e3a8a; margin: 0 0 12px 0; font-size: 1.7rem; }
+
+    .top-controls { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    .stats-bar {
+      background: white; padding: 9px 18px; border-radius: 50px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06); font-weight: bold; color: #334155; font-size: 0.95rem;
+    }
+    .album-btn {
+      background: #1e3a8a; color: white; border: none; padding: 9px 18px;
+      border-radius: 50px; font-weight: bold; font-size: 0.95rem; cursor: pointer;
+      box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25);
+    }
+
+    .container { width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 22px; }
+
+    /* ================= 1. 今日科學頭條區塊 ================= */
+    .news-section {
+      background: white; border-radius: 24px; padding: 22px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.07); border-top: 6px solid #0284c7;
+    }
+    .news-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .news-tag { background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; }
+    .news-tabs { display: flex; gap: 6px; }
+    .news-tab-btn {
+      padding: 5px 12px; border-radius: 12px; border: 1.5px solid #cbd5e1;
+      background: #f8fafc; font-weight: bold; color: #475569; cursor: pointer; font-size: 0.85rem;
+    }
+    .news-tab-btn.active { background: #0284c7; color: white; border-color: #0284c7; }
+
+    .news-title-row { display: flex; align-items: flex-start; gap: 10px; margin: 10px 0; }
+    .news-emoji { font-size: 2.4rem; line-height: 1; }
+    .news-title { margin: 0; font-size: 1.25rem; color: #0f172a; line-height: 1.4; }
+    .news-summary {
+      background: #f8fafc; padding: 14px 16px; border-radius: 14px;
+      color: #334155; line-height: 1.7; font-size: 1.02rem; margin-bottom: 14px;
+    }
+    .quiz-block { border-top: 1.5px dashed #e2e8f0; padding-top: 14px; margin-top: 12px; }
+    .quiz-q { font-weight: bold; color: #1e293b; margin-bottom: 8px; font-size: 1rem; }
+    .quiz-opts { display: flex; flex-direction: column; gap: 7px; }
+    .quiz-opt {
+      padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px;
+      background: white; text-align: left; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-opt:hover:not(:disabled) { border-color: #0284c7; background: #f0f9ff; }
+    .quiz-opt.correct { background: #dcfce7; border-color: #16a34a; color: #14532d; font-weight: bold; }
+    .quiz-opt.wrong { background: #fee2e2; border-color: #dc2626; color: #7f1d1d; }
+    .quiz-exp { font-size: 0.9rem; color: #854d0e; background: #fefce8; padding: 8px 12px; border-radius: 8px; margin-top: 8px; display: none; }
+
+    /* ================= 2. 盲盒抽卡區塊 ================= */
+    .blind-box {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      border-radius: 24px; padding: 36px 24px; text-align: center; color: white;
+      box-shadow: 0 15px 30px rgba(37, 99, 235, 0.28); cursor: pointer; transition: transform 0.25s;
+    }
+    .blind-box:hover { transform: translateY(-4px); }
+    .box-icon { font-size: 4.5rem; margin-bottom: 10px; animation: bounce 2s infinite; }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+    .card {
+      background: var(--card-front); border-radius: 24px; padding: 24px;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.1); border: 4px solid var(--common); display: none;
+    }
+    .card.rarity-實驗級 { border-color: var(--rare); }
+    .card.rarity-宇宙級 { border-color: var(--legend); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .badge { padding: 4px 12px; border-radius: 20px; color: white; font-size: 0.85rem; font-weight: bold; background: var(--common); }
+    .rarity-實驗級 .badge { background: var(--rare); }
+    .rarity-宇宙級 .badge { background: var(--legend); }
+    .emoji-hero { font-size: 3.8rem; text-align: center; margin: 8px 0; }
+    .question-box { font-size: 1.2rem; font-weight: bold; color: #0f172a; line-height: 1.5; margin-bottom: 16px; display: flex; gap: 8px; }
+    .tts-btn { background: #e0f2fe; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; font-size: 1rem; flex-shrink: 0; }
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .opt-btn { padding: 13px 16px; border: 2px solid #e2e8f0; border-radius: 14px; background: #f8fafc; text-align: left; font-size: 1.02rem; cursor: pointer; font-weight: 500; }
+    .opt-btn.correct { background: #dcfce7; border-color: #16a34a; color: #14532d; font-weight: bold; }
+    .opt-btn.wrong { background: #fee2e2; border-color: #dc2626; color: #7f1d1d; }
+    .explanation-box { margin-top: 16px; padding: 14px; background: #fefce8; border-left: 5px solid #eab308; border-radius: 12px; display: none; line-height: 1.6; }
+    .next-btn { margin-top: 16px; width: 100%; padding: 14px; border: none; border-radius: 14px; background: var(--primary); color: white; font-size: 1.08rem; font-weight: bold; cursor: pointer; display: none; }
+
+    /* ================= 3. 圖鑑牆彈窗 ================= */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7);
+      display: none; justify-content: center; align-items: center; z-index: 1000; padding: 16px;
+    }
+    .modal-content {
+      background: #f8fafc; width: 100%; max-width: 720px; max-height: 88vh;
+      border-radius: 24px; display: flex; flex-direction: column; overflow: hidden;
+    }
+    .modal-header { background: white; padding: 16px 22px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+    .close-btn { background: #f1f5f9; border: none; width: 34px; height: 34px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; font-weight: bold; }
+    .filter-bar { display: flex; gap: 8px; padding: 12px 22px; background: white; border-bottom: 1px solid #e2e8f0; overflow-x: auto; }
+    .filter-btn { padding: 6px 14px; border-radius: 20px; border: 1.5px solid #cbd5e1; background: white; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
+    .filter-btn.active { background: #1e3a8a; color: white; border-color: #1e3a8a; }
+    .album-grid { padding: 18px 22px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+    .mini-card { background: white; border-radius: 16px; padding: 12px 10px; text-align: center; border: 3px solid var(--common); cursor: pointer; }
+    .mini-card.rarity-實驗級 { border-color: var(--rare); }
+    .mini-card.rarity-宇宙級 { border-color: var(--legend); }
+    .mini-card.locked { background: #e2e8f0; border-color: #cbd5e1; cursor: default; }
+    .mini-card.locked .mini-emoji { filter: brightness(0) opacity(0.28); }
+    .mini-emoji { font-size: 2.5rem; margin: 6px 0; }
+    .mini-title { font-size: 0.85rem; font-weight: bold; color: #1e293b; }
+    .detail-view { padding: 22px; overflow-y: auto; display: none; background: white; }
+    .back-grid-btn { background: #eff6ff; color: var(--primary); border: none; padding: 8px 14px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 14px; }
+    .detail-answer { background: #dcfce7; color: #14532d; padding: 12px; border-radius: 12px; font-weight: bold; margin: 12px 0; }
+    .loading { color: #64748b; font-weight: bold; margin-top: 40px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🔬 鳳溪科學探索站：每日科普與盲盒</h1>
+    <div class="top-controls">
+      <div class="stats-bar">📚 盲盒圖鑑：<span id="unlocked-count">0</span> / <span id="total-count">0</span></div>
+      <button class="album-btn" onclick="openAlbum()">📖 我的科學圖鑑牆</button>
+    </div>
+  </header>
+
+  <div id="loading-msg" class="loading">⏳ 正在載入今日科學頭條與盲盒資料庫...</div>
+
+  <div class="container" id="main-container" style="display:none;">
+    <!-- 1. 每日科學新聞與讀後小測 -->
+    <section class="news-section" id="news-section" style="display:none;">
+      <div class="news-top-bar">
+        <span class="news-tag">📰 今日科學頭條 (<span id="news-date"></span>)</span>
+        <div class="news-tabs" id="news-tabs"></div>
+      </div>
+      <div class="news-title-row">
+        <span class="news-emoji" id="news-emoji">🌍</span>
+        <h2 class="news-title" id="news-title">載入中...</h2>
+        <button class="tts-btn" onclick="speakNews()" title="粵語朗讀新聞">🔊</button>
+      </div>
+      <div class="news-summary" id="news-summary"></div>
+      <div id="news-quizzes"></div>
+    </section>
+
+    <!-- 2. 十萬個為什麼科普盲盒 -->
+    <section>
+      <div class="blind-box" id="blind-box" onclick="drawCard()">
+        <div class="box-icon">🎁</div>
+        <h2 style="margin:0 0 8px 0;">開啟十萬個為什麼盲盒！</h2>
+        <p style="margin:0; opacity:0.9;">隨機抽取生活級、實驗級或宇宙級科學知識卡</p>
+      </div>
+
+      <div class="card" id="science-card">
+        <div class="card-header">
+          <span class="badge" id="card-rarity">生活級</span>
+          <span style="color:#64748b; font-weight:bold; font-size:0.9rem;" id="card-category">分類</span>
+        </div>
+        <div class="emoji-hero" id="card-emoji">🧅</div>
+        <div class="question-box">
+          <button class="tts-btn" onclick="speakCard(currentCard, true)" title="粵語朗讀">🔊</button>
+          <span id="card-question"></span>
+        </div>
+        <div class="options" id="options-container"></div>
+        <div class="explanation-box" id="explanation-box">
+          <strong>💡 科學大揭秘：</strong>
+          <p id="card-explanation" style="margin: 6px 0 0 0;"></p>
+        </div>
+        <button class="next-btn" id="next-btn" onclick="resetToBox()">🎁 再抽一個盲盒</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- 3. 我的科學圖鑑牆彈窗 -->
+  <div class="modal-overlay" id="album-modal" onclick="if(event.target.id==='album-modal') closeAlbum()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 style="margin:0; font-size:1.3rem; color:#1e3a8a;">📖 我的科學圖鑑牆 (<span id="modal-progress">0/0</span>)</h2>
+        <button class="close-btn" onclick="closeAlbum()">✕</button>
+      </div>
+      <div class="filter-bar" id="filter-bar">
+        <button class="filter-btn active" onclick="setFilter('ALL', this)">全部</button>
+        <button class="filter-btn" onclick="setFilter('生活級', this)">🟢 生活級</button>
+        <button class="filter-btn" onclick="setFilter('實驗級', this)">🟣 實驗級</button>
+        <button class="filter-btn" onclick="setFilter('宇宙級', this)">🟡 宇宙級</button>
+      </div>
+      <div class="album-grid" id="album-grid"></div>
+      <div class="detail-view" id="detail-view">
+        <button class="back-grid-btn" onclick="showAlbumGrid()">← 返回圖鑑列表</button>
+        <div style="display:flex; justify-content:space-between;">
+          <span class="badge" id="det-rarity">生活級</span>
+          <span style="color:#64748b; font-weight:bold;" id="det-category"></span>
+        </div>
+        <div class="emoji-hero" id="det-emoji">🔬</div>
+        <div class="question-box">
+          <button class="tts-btn" id="det-tts-btn">🔊</button>
+          <span id="det-question"></span>
+        </div>
+        <div class="detail-answer" id="det-answer"></div>
+        <div class="explanation-box" style="display:block;">
+          <strong>💡 科學大揭秘：</strong>
+          <p id="det-explanation" style="margin: 6px 0 0 0;"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 請貼上你剛部署的 Apps Script 網頁應用程式網址
+    const API_URL = "https://script.google.com/macros/s/AKfycbyfx-Oa9pgAyCDdIYvanEEtoVy5Y0zAv2dj-k9vXNWYpbNDybBQs0LnoAmXyTZ8FvlB/exec";
+
+    let allCards = [];
+    let allNews = [];
+    let currentNews = null;
+    let currentCard = null;
+    let currentFilter = "ALL";
+    let unlockedIds = JSON.parse(localStorage.getItem("science_unlocked_ids") || "[]");
+
+    async function initApp() {
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        if (data.status === "success") {
+          allCards = data.cards || [];
+          allNews = data.news || [];
+
+          document.getElementById("total-count").textContent = allCards.length;
+          updateStats();
+
+          if (allNews.length > 0) {
+            renderNewsTabs();
+            selectNews(0);
+            document.getElementById("news-section").style.display = "block";
+          }
+
+          document.getElementById("loading-msg").style.display = "none";
+          document.getElementById("main-container").style.display = "flex";
+        }
+      } catch (err) {
+        document.getElementById("loading-msg").textContent = "❌ 載入失敗，請檢查 API_URL 是否正確。";
+      }
+    }
+
+    // 渲染最新 2 篇新聞切換按鈕
+    function renderNewsTabs() {
+      const tabsEl = document.getElementById("news-tabs");
+      tabsEl.innerHTML = "";
+      const topNews = allNews.slice(0, 2);
+      topNews.forEach((n, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "news-tab-btn" + (idx === 0 ? " active" : "");
+        btn.textContent = `頭條 ${idx + 1}`;
+        btn.onclick = () => {
+          document.querySelectorAll(".news-tab-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          selectNews(idx);
+        };
+        tabsEl.appendChild(btn);
+      });
+    }
+
+    function selectNews(idx) {
+      window.speechSynthesis.cancel();
+      currentNews = allNews[idx];
+      const dateStr = String(currentNews.publish_date).split("T")[0];
+      document.getElementById("news-date").textContent = dateStr;
+      document.getElementById("news-emoji").textContent = currentNews.emoji || "🔬";
+      document.getElementById("news-title").textContent = currentNews.title;
+      document.getElementById("news-summary").textContent = currentNews.summary;
+
+      const quizzesEl = document.getElementById("news-quizzes");
+      quizzesEl.innerHTML = "";
+
+      [1, 2].forEach(qNum => {
+        const qText = currentNews[`q${qNum}_question`];
+        if (!qText) return;
+
+        const block = document.createElement("div");
+        block.className = "quiz-block";
+        block.innerHTML = `<div class="quiz-q">📝 讀後挑戰 ${qNum}：${qText}</div>`;
+
+        const optsDiv = document.createElement("div");
+        optsDiv.className = "quiz-opts";
+        const expDiv = document.createElement("div");
+        expDiv.className = "quiz-exp";
+        expDiv.textContent = `💡 解析：${currentNews[`q${qNum}_explanation`]}`;
+
+        ["A", "B", "C"].forEach(key => {
+          const optBtn = document.createElement("button");
+          optBtn.className = "quiz-opt";
+          optBtn.textContent = `${key}. ${currentNews[`q${qNum}_opt${key}`]}`;
+          optBtn.onclick = () => {
+            optsDiv.querySelectorAll(".quiz-opt").forEach(b => b.disabled = true);
+            const ans = String(currentNews[`q${qNum}_answer`]).trim().toUpperCase();
+            if (key === ans) {
+              optBtn.classList.add("correct");
+            } else {
+              optBtn.classList.add("wrong");
+              const cIdx = ["A", "B", "C"].indexOf(ans);
+              if (cIdx >= 0) optsDiv.children[cIdx].classList.add("correct");
+            }
+            expDiv.style.display = "block";
+          };
+          optsDiv.appendChild(optBtn);
+        });
+
+        block.appendChild(optsDiv);
+        block.appendChild(expDiv);
+        quizzesEl.appendChild(block);
+      });
+    }
+
+    function speakNews() {
+      if (!currentNews || !("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(`${currentNews.title}。${currentNews.summary}`);
+      utter.lang = "zh-HK";
+      utter.rate = 0.95;
+      window.speechSynthesis.speak(utter);
+    }
+
+    // 盲盒與圖鑑邏輯
+    function drawCard() {
+      const lockedCards = allCards.filter(c => !unlockedIds.includes(String(c.id)));
+      const pool = lockedCards.length > 0 ? lockedCards : allCards;
+      currentCard = pool[Math.floor(Math.random() * pool.length)];
+
+      const cardEl = document.getElementById("science-card");
+      cardEl.className = `card rarity-${currentCard.rarity}`;
+      document.getElementById("card-rarity").textContent = currentCard.rarity;
+      document.getElementById("card-category").textContent = currentCard.category;
+      document.getElementById("card-emoji").textContent = currentCard.emoji || "🔬";
+      document.getElementById("card-question").textContent = currentCard.question;
+
+      const optContainer = document.getElementById("options-container");
+      optContainer.innerHTML = "";
+      ["A", "B", "C"].forEach(key => {
+        const btn = document.createElement("button");
+        btn.className = "opt-btn";
+        btn.textContent = `${key}. ${currentCard["opt" + key]}`;
+        btn.onclick = () => checkAnswer(key, btn);
+        optContainer.appendChild(btn);
+      });
+
+      document.getElementById("explanation-box").style.display = "none";
+      document.getElementById("next-btn").style.display = "none";
+      document.getElementById("blind-box").style.display = "none";
+      cardEl.style.display = "block";
+    }
+
+    function checkAnswer(selectedKey, clickedBtn) {
+      const buttons = document.querySelectorAll(".opt-btn");
+      buttons.forEach(b => b.disabled = true);
+      const correctKey = String(currentCard.answer).trim().toUpperCase();
+      if (selectedKey === correctKey) {
+        clickedBtn.classList.add("correct");
+      } else {
+        clickedBtn.classList.add("wrong");
+        const idx = ["A", "B", "C"].indexOf(correctKey);
+        if (idx >= 0) buttons[idx].classList.add("correct");
+      }
+      document.getElementById("card-explanation").textContent = currentCard.explanation;
+      document.getElementById("explanation-box").style.display = "block";
+      document.getElementById("next-btn").style.display = "block";
+
+      const cardId = String(currentCard.id);
+      if (!unlockedIds.includes(cardId)) {
+        unlockedIds.push(cardId);
+        localStorage.setItem("science_unlocked_ids", JSON.stringify(unlockedIds));
+        updateStats();
+      }
+    }
+
+    function resetToBox() {
+      window.speechSynthesis.cancel();
+      document.getElementById("science-card").style.display = "none";
+      document.getElementById("blind-box").style.display = "block";
+    }
+
+    function updateStats() {
+      document.getElementById("unlocked-count").textContent = unlockedIds.length;
+      document.getElementById("modal-progress").textContent = `${unlockedIds.length} / ${allCards.length}`;
+    }
+
+    function openAlbum() {
+      if (allCards.length === 0) return;
+      window.speechSynthesis.cancel();
+      updateStats();
+      showAlbumGrid();
+      renderAlbumGrid();
+      document.getElementById("album-modal").style.display = "flex";
+    }
+    function closeAlbum() { window.speechSynthesis.cancel(); document.getElementById("album-modal").style.display = "none"; }
+    function setFilter(rarity, btnEl) {
+      currentFilter = rarity;
+      document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+      btnEl.classList.add("active");
+      showAlbumGrid();
+      renderAlbumGrid();
+    }
+    function showAlbumGrid() {
+      document.getElementById("detail-view").style.display = "none";
+      document.getElementById("filter-bar").style.display = "flex";
+      document.getElementById("album-grid").style.display = "grid";
+    }
+    function renderAlbumGrid() {
+      const grid = document.getElementById("album-grid");
+      grid.innerHTML = "";
+      const filtered = currentFilter === "ALL" ? allCards : allCards.filter(c => c.rarity === currentFilter);
+      filtered.forEach(card => {
+        const isUnlocked = unlockedIds.includes(String(card.id));
+        const item = document.createElement("div");
+        if (isUnlocked) {
+          item.className = `mini-card rarity-${card.rarity}`;
+          item.innerHTML = `<div style="font-size:0.75rem;color:#94a3b8;font-weight:bold;">#${String(card.id).padStart(2,'0')}</div><div class="mini-emoji">${card.emoji || "🔬"}</div><div class="mini-title">${card.question}</div>`;
+          item.onclick = () => openCardDetail(card);
+        } else {
+          item.className = "mini-card locked";
+          item.innerHTML = `<div style="font-size:0.75rem;color:#94a3b8;font-weight:bold;">#${String(card.id).padStart(2,'0')}</div><div class="mini-emoji">${card.emoji || "❓"}</div><div class="mini-title">？？？</div>`;
+        }
+        grid.appendChild(item);
+      });
+    }
+    function openCardDetail(card) {
+      document.getElementById("album-grid").style.display = "none";
+      document.getElementById("filter-bar").style.display = "none";
+      document.getElementById("det-rarity").textContent = card.rarity;
+      document.getElementById("det-category").textContent = card.category;
+      document.getElementById("det-emoji").textContent = card.emoji || "🔬";
+      document.getElementById("det-question").textContent = card.question;
+      const ansKey = String(card.answer).trim().toUpperCase();
+      document.getElementById("det-answer").textContent = `✅ 正確答案：${ansKey}. ${card["opt" + ansKey]}`;
+      document.getElementById("det-explanation").textContent = card.explanation;
+      document.getElementById("det-tts-btn").onclick = () => speakCard(card, false);
+      document.getElementById("detail-view").style.display = "block";
+    }
+    function speakCard(card, isStageMode) {
+      if (!card || !("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const textToRead = isStageMode
+        ? (document.getElementById("explanation-box").style.display === "block" ? `科學大揭秘：${card.explanation}` : `${card.question}。A，${card.optA}。B，${card.optB}。C，${card.optC}。`)
+        : `${card.question}。正確答案係 ${card["opt" + String(card.answer).trim().toUpperCase()]}。科學大揭秘：${card.explanation}`;
+      const utter = new SpeechSynthesisUtterance(textToRead);
+      utter.lang = "zh-HK";
+      utter.rate = 0.95;
+      window.speechSynthesis.speak(utter);
+    }
+
+    initApp();
+  </script>
+</body>
+</html>
