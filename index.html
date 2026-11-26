@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>十萬個為什麼：每日科學日報與科普盲盒</title>
+  <title>鳳溪科學探索站：每日科普、國家創科與盲盒圖鑑</title>
   <style>
     :root {
       --bg-color: #f0f7ff;
@@ -12,16 +12,18 @@
       --common: #10b981;
       --rare: #8b5cf6;
       --legend: #f59e0b;
+      --national-red: #b91c1c;
+      --national-gold: #d97706;
     }
     * { box-sizing: border-box; font-family: "Noto Sans TC", "PingFang HK", sans-serif; }
     body {
       margin: 0; padding: 18px; background: var(--bg-color);
       display: flex; flex-direction: column; align-items: center; min-height: 100vh;
     }
-    header { text-align: center; margin-bottom: 16px; width: 100%; max-width: 560px; }
-    h1 { color: #1e3a8a; margin: 0 0 12px 0; font-size: 1.7rem; }
+    header { text-align: center; margin-bottom: 20px; width: 100%; max-width: 1080px; }
+    h1 { color: #1e3a8a; margin: 0 0 12px 0; font-size: 1.8rem; }
 
-    .top-controls { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    .top-controls { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
     .stats-bar {
       background: white; padding: 9px 18px; border-radius: 50px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.06); font-weight: bold; color: #334155; font-size: 0.95rem;
@@ -29,18 +31,43 @@
     .album-btn {
       background: #1e3a8a; color: white; border: none; padding: 9px 18px;
       border-radius: 50px; font-weight: bold; font-size: 0.95rem; cursor: pointer;
-      box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25);
+      box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25); transition: transform 0.15s;
+    }
+    .album-btn:hover { transform: scale(1.03); }
+
+    /* 雙欄響應式主佈局 */
+    .layout-grid {
+      width: 100%; max-width: 1080px;
+      display: grid; grid-template-columns: 1fr 330px; gap: 22px; align-items: start;
+    }
+    @media (max-width: 860px) {
+      .layout-grid { grid-template-columns: 1fr; }
+    }
+    .main-col { display: flex; flex-direction: column; gap: 22px; }
+
+    /* ================= 置頂：國家航天與創科焦點特別外框 ================= */
+    .national-card {
+      background: linear-gradient(180deg, #fffbeb 0%, #ffffff 28%);
+      border-radius: 24px; padding: 24px;
+      border: 3px solid var(--national-gold);
+      box-shadow: 0 12px 28px rgba(185, 28, 28, 0.12);
+      position: relative;
+    }
+    .national-banner {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: linear-gradient(90deg, #b91c1c, #dc2626);
+      color: #fef3c7; padding: 6px 14px; border-radius: 20px;
+      font-weight: bold; font-size: 0.88rem; margin-bottom: 12px;
+      box-shadow: 0 3px 8px rgba(185, 28, 28, 0.25);
     }
 
-    .container { width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 22px; }
-
-    /* ================= 1. 今日科學頭條區塊 ================= */
+    /* ================= 一般每日科學頭條卡片 ================= */
     .news-section {
-      background: white; border-radius: 24px; padding: 22px;
+      background: white; border-radius: 24px; padding: 24px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.07); border-top: 6px solid #0284c7;
     }
-    .news-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .news-tag { background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; }
+    .news-top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .news-tag { background: #e0f2fe; color: #0369a1; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; }
     .news-tabs { display: flex; gap: 6px; }
     .news-tab-btn {
       padding: 5px 12px; border-radius: 12px; border: 1.5px solid #cbd5e1;
@@ -48,33 +75,81 @@
     }
     .news-tab-btn.active { background: #0284c7; color: white; border-color: #0284c7; }
 
-    .news-title-row { display: flex; align-items: flex-start; gap: 10px; margin: 10px 0; }
-    .news-emoji { font-size: 2.4rem; line-height: 1; }
-    .news-title { margin: 0; font-size: 1.25rem; color: #0f172a; line-height: 1.4; }
-    .news-summary {
-      background: #f8fafc; padding: 14px 16px; border-radius: 14px;
-      color: #334155; line-height: 1.7; font-size: 1.02rem; margin-bottom: 14px;
+    .article-title-row { display: flex; align-items: flex-start; gap: 10px; margin: 10px 0 14px 0; }
+    .article-emoji { font-size: 2.5rem; line-height: 1; }
+    .article-title { margin: 0; font-size: 1.3rem; color: #0f172a; line-height: 1.4; flex: 1; }
+    .article-body {
+      background: #f8fafc; padding: 16px 18px; border-radius: 16px;
+      color: #1e293b; line-height: 1.75; font-size: 1.04rem; margin-bottom: 12px;
+      border: 1px solid #e2e8f0;
     }
-    .quiz-block { border-top: 1.5px dashed #e2e8f0; padding-top: 14px; margin-top: 12px; }
-    .quiz-q { font-weight: bold; color: #1e293b; margin-bottom: 8px; font-size: 1rem; }
-    .quiz-opts { display: flex; flex-direction: column; gap: 7px; }
+    .article-body p { margin: 0 0 10px 0; }
+    .article-body p:last-child { margin-bottom: 0; }
+
+    /* 資訊來源標示與連結列 */
+    .source-bar {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+      background: #f1f5f9; padding: 8px 14px; border-radius: 12px;
+      font-size: 0.86rem; color: #475569; margin-bottom: 14px;
+    }
+    .source-link {
+      color: #0284c7; font-weight: bold; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .source-link:hover { text-decoration: underline; }
+
+    /* 讀後 MC 小測 */
+    .quiz-block { border-top: 1.5px dashed #cbd5e1; padding-top: 14px; margin-top: 12px; }
+    .quiz-q { font-weight: bold; color: #0f172a; margin-bottom: 9px; font-size: 1.02rem; }
+    .quiz-opts { display: flex; flex-direction: column; gap: 8px; }
     .quiz-opt {
-      padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px;
-      background: white; text-align: left; cursor: pointer; font-size: 0.95rem;
+      padding: 11px 14px; border: 1.5px solid #cbd5e1; border-radius: 12px;
+      background: white; text-align: left; cursor: pointer; font-size: 0.96rem; transition: all 0.15s;
     }
     .quiz-opt:hover:not(:disabled) { border-color: #0284c7; background: #f0f9ff; }
     .quiz-opt.correct { background: #dcfce7; border-color: #16a34a; color: #14532d; font-weight: bold; }
     .quiz-opt.wrong { background: #fee2e2; border-color: #dc2626; color: #7f1d1d; }
-    .quiz-exp { font-size: 0.9rem; color: #854d0e; background: #fefce8; padding: 8px 12px; border-radius: 8px; margin-top: 8px; display: none; }
+    .quiz-exp { font-size: 0.92rem; color: #854d0e; background: #fefce8; padding: 10px 14px; border-radius: 10px; margin-top: 8px; display: none; border-left: 4px solid #eab308; }
 
-    /* ================= 2. 盲盒抽卡區塊 ================= */
+    /* ================= 右側邊欄：昔日科普文庫 ================= */
+    .sidebar {
+      background: white; border-radius: 24px; padding: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.06); border-top: 6px solid #4f46e5;
+      position: sticky; top: 18px;
+    }
+    .sidebar h3 { margin: 0 0 12px 0; color: #1e1b4b; font-size: 1.15rem; display: flex; align-items: center; gap: 6px; }
+    .date-filter-box {
+      display: flex; gap: 6px; margin-bottom: 14px;
+    }
+    .date-input {
+      flex: 1; padding: 8px 10px; border: 1.5px solid #cbd5e1; border-radius: 10px;
+      font-size: 0.9rem; color: #334155;
+    }
+    .reset-date-btn {
+      padding: 8px 12px; background: #eef2ff; color: #4338ca; border: none;
+      border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 0.85rem;
+    }
+    .archive-list {
+      max-height: 520px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
+    }
+    .archive-item {
+      padding: 10px 12px; border-radius: 12px; border: 1.5px solid #e2e8f0;
+      background: #f8fafc; cursor: pointer; transition: all 0.15s; text-align: left;
+    }
+    .archive-item:hover { border-color: #4f46e5; background: #eef2ff; }
+    .archive-item.active { border-color: #4f46e5; background: #e0e7ff; }
+    .archive-item.is-national { border-left: 4px solid #dc2626; }
+    .archive-meta { font-size: 0.78rem; color: #64748b; display: flex; justify-content: space-between; margin-bottom: 3px; }
+    .archive-item-title { font-size: 0.92rem; font-weight: bold; color: #1e293b; line-height: 1.35; }
+
+    /* ================= 盲盒抽卡區 ================= */
     .blind-box {
       background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-      border-radius: 24px; padding: 36px 24px; text-align: center; color: white;
-      box-shadow: 0 15px 30px rgba(37, 99, 235, 0.28); cursor: pointer; transition: transform 0.25s;
+      border-radius: 24px; padding: 34px 24px; text-align: center; color: white;
+      box-shadow: 0 15px 30px rgba(37, 99, 235, 0.25); cursor: pointer; transition: transform 0.25s;
     }
     .blind-box:hover { transform: translateY(-4px); }
-    .box-icon { font-size: 4.5rem; margin-bottom: 10px; animation: bounce 2s infinite; }
+    .box-icon { font-size: 4.2rem; margin-bottom: 8px; animation: bounce 2s infinite; }
     @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
     .card {
@@ -88,7 +163,7 @@
     .rarity-實驗級 .badge { background: var(--rare); }
     .rarity-宇宙級 .badge { background: var(--legend); }
     .emoji-hero { font-size: 3.8rem; text-align: center; margin: 8px 0; }
-    .question-box { font-size: 1.2rem; font-weight: bold; color: #0f172a; line-height: 1.5; margin-bottom: 16px; display: flex; gap: 8px; }
+    .question-box { font-size: 1.18rem; font-weight: bold; color: #0f172a; line-height: 1.5; margin-bottom: 16px; display: flex; gap: 8px; }
     .tts-btn { background: #e0f2fe; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; font-size: 1rem; flex-shrink: 0; }
     .options { display: flex; flex-direction: column; gap: 10px; }
     .opt-btn { padding: 13px 16px; border: 2px solid #e2e8f0; border-radius: 14px; background: #f8fafc; text-align: left; font-size: 1.02rem; cursor: pointer; font-weight: 500; }
@@ -97,7 +172,7 @@
     .explanation-box { margin-top: 16px; padding: 14px; background: #fefce8; border-left: 5px solid #eab308; border-radius: 12px; display: none; line-height: 1.6; }
     .next-btn { margin-top: 16px; width: 100%; padding: 14px; border: none; border-radius: 14px; background: var(--primary); color: white; font-size: 1.08rem; font-weight: bold; cursor: pointer; display: none; }
 
-    /* ================= 3. 圖鑑牆彈窗 ================= */
+    /* ================= 圖鑑牆彈窗 ================= */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7);
       display: none; justify-content: center; align-items: center; z-index: 1000; padding: 16px;
@@ -135,53 +210,67 @@
     </div>
   </header>
 
-  <div id="loading-msg" class="loading">⏳ 正在載入今日科學頭條與盲盒資料庫...</div>
+  <div id="loading-msg" class="loading">⏳ 正在載入國家創科焦點、每日科學頭條與盲盒題庫...</div>
 
-  <div class="container" id="main-container" style="display:none;">
-    <!-- 1. 每日科學新聞與讀後小測 -->
-    <section class="news-section" id="news-section" style="display:none;">
-      <div class="news-top-bar">
-        <span class="news-tag">📰 今日科學頭條 (<span id="news-date"></span>)</span>
-        <div class="news-tabs" id="news-tabs"></div>
-      </div>
-      <div class="news-title-row">
-        <span class="news-emoji" id="news-emoji">🌍</span>
-        <h2 class="news-title" id="news-title">載入中...</h2>
-        <button class="tts-btn" onclick="speakNews()" title="粵語朗讀新聞">🔊</button>
-      </div>
-      <div class="news-summary" id="news-summary"></div>
-      <div id="news-quizzes"></div>
-    </section>
+  <div class="layout-grid" id="main-layout" style="display:none;">
+    <!-- ================= 左側主閱讀區 ================= -->
+    <div class="main-col">
 
-    <!-- 2. 十萬個為什麼科普盲盒 -->
-    <section>
-      <div class="blind-box" id="blind-box" onclick="drawCard()">
-        <div class="box-icon">🎁</div>
-        <h2 style="margin:0 0 8px 0;">開啟十萬個為什麼盲盒！</h2>
-        <p style="margin:0; opacity:0.9;">隨機抽取生活級、實驗級或宇宙級科學知識卡</p>
-      </div>
+      <!-- 1. 每週置頂：國家航天與創科焦點 -->
+      <section class="national-card" id="national-section" style="display:none;">
+        <div class="national-banner">🚀 國家航天與創科焦點（本週置頂精選）</div>
+        <div id="national-content"></div>
+      </section>
 
-      <div class="card" id="science-card">
-        <div class="card-header">
-          <span class="badge" id="card-rarity">生活級</span>
-          <span style="color:#64748b; font-weight:bold; font-size:0.9rem;" id="card-category">分類</span>
+      <!-- 2. 每日科學新聞 / 選讀舊文閱讀區 -->
+      <section class="news-section" id="news-section" style="display:none;">
+        <div class="news-top-bar">
+          <span class="news-tag" id="reading-mode-badge">📰 今日科學頭條 (<span id="news-date"></span>)</span>
+          <div class="news-tabs" id="news-tabs"></div>
         </div>
-        <div class="emoji-hero" id="card-emoji">🧅</div>
-        <div class="question-box">
-          <button class="tts-btn" onclick="speakCard(currentCard, true)" title="粵語朗讀">🔊</button>
-          <span id="card-question"></span>
+        <div id="active-news-content"></div>
+      </section>
+
+      <!-- 3. 十萬個為什麼科普盲盒 -->
+      <section>
+        <div class="blind-box" id="blind-box" onclick="drawCard()">
+          <div class="box-icon">🎁</div>
+          <h2 style="margin:0 0 8px 0;">開啟十萬個為什麼盲盒！</h2>
+          <p style="margin:0; opacity:0.9;">隨機抽取生活級、實驗級或宇宙級科學知識卡</p>
         </div>
-        <div class="options" id="options-container"></div>
-        <div class="explanation-box" id="explanation-box">
-          <strong>💡 科學大揭秘：</strong>
-          <p id="card-explanation" style="margin: 6px 0 0 0;"></p>
+
+        <div class="card" id="science-card">
+          <div class="card-header">
+            <span class="badge" id="card-rarity">生活級</span>
+            <span style="color:#64748b; font-weight:bold; font-size:0.9rem;" id="card-category">分類</span>
+          </div>
+          <div class="emoji-hero" id="card-emoji">🧅</div>
+          <div class="question-box">
+            <button class="tts-btn" onclick="speakCard(currentCard, true)" title="粵語朗讀">🔊</button>
+            <span id="card-question"></span>
+          </div>
+          <div class="options" id="options-container"></div>
+          <div class="explanation-box" id="explanation-box">
+            <strong>💡 科學大揭秘：</strong>
+            <p id="card-explanation" style="margin: 6px 0 0 0;"></p>
+          </div>
+          <button class="next-btn" id="next-btn" onclick="resetToBox()">🎁 再抽一個盲盒</button>
         </div>
-        <button class="next-btn" id="next-btn" onclick="resetToBox()">🎁 再抽一個盲盒</button>
+      </section>
+    </div>
+
+    <!-- ================= 右側邊欄：昔日科普文庫 ================= -->
+    <aside class="sidebar">
+      <h3>📅 昔日科普文庫</h3>
+      <div class="date-filter-box">
+        <input type="date" id="archive-date-picker" class="date-input" onchange="filterArchiveByDate()">
+        <button class="reset-date-btn" onclick="resetArchiveFilter()">全部</button>
       </div>
-    </section>
+      <div class="archive-list" id="archive-list"></div>
+    </aside>
   </div>
 
-  <!-- 3. 我的科學圖鑑牆彈窗 -->
+  <!-- ================= 我的科學圖鑑牆彈窗 ================= -->
   <div class="modal-overlay" id="album-modal" onclick="if(event.target.id==='album-modal') closeAlbum()">
     <div class="modal-content">
       <div class="modal-header">
@@ -216,12 +305,11 @@
   </div>
 
   <script>
-    // 請貼上你剛部署的 Apps Script 網頁應用程式網址
-    const API_URL = "https://script.google.com/macros/s/AKfycbyfx-Oa9pgAyCDdIYvanEEtoVy5Y0zAv2dj-k9vXNWYpbNDybBQs0LnoAmXyTZ8FvlB/exec";
+    // 請貼上你的 Apps Script 網頁應用程式網址
+    const API_URL = "https://script.google.com/macros/s/你的部署ID/exec";
 
     let allCards = [];
     let allNews = [];
-    let currentNews = null;
     let currentCard = null;
     let currentFilter = "ALL";
     let unlockedIds = JSON.parse(localStorage.getItem("science_unlocked_ids") || "[]");
@@ -232,57 +320,73 @@
         const data = await res.json();
         if (data.status === "success") {
           allCards = data.cards || [];
-          allNews = data.news || [];
+          allNews = (data.news || []).map(item => ({
+            ...item,
+            cleanDate: String(item.publish_date).split("T")[0]
+          }));
 
           document.getElementById("total-count").textContent = allCards.length;
           updateStats();
 
           if (allNews.length > 0) {
-            renderNewsTabs();
-            selectNews(0);
+            renderNationalPinned();
+            renderLatestNewsTabs();
+            renderArchiveList(allNews);
             document.getElementById("news-section").style.display = "block";
           }
 
           document.getElementById("loading-msg").style.display = "none";
-          document.getElementById("main-container").style.display = "flex";
+          document.getElementById("main-layout").style.display = "grid";
         }
       } catch (err) {
         document.getElementById("loading-msg").textContent = "❌ 載入失敗，請檢查 API_URL 是否正確。";
       }
     }
 
-    // 渲染最新 2 篇新聞切換按鈕
-    function renderNewsTabs() {
-      const tabsEl = document.getElementById("news-tabs");
-      tabsEl.innerHTML = "";
-      const topNews = allNews.slice(0, 2);
-      topNews.forEach((n, idx) => {
-        const btn = document.createElement("button");
-        btn.className = "news-tab-btn" + (idx === 0 ? " active" : "");
-        btn.textContent = `頭條 ${idx + 1}`;
-        btn.onclick = () => {
-          document.querySelectorAll(".news-tab-btn").forEach(b => b.classList.remove("active"));
-          btn.classList.add("active");
-          selectNews(idx);
-        };
-        tabsEl.appendChild(btn);
+    // 共用文章與讀後 MC 渲染器（支援來源標示、來源連結與多段落）
+    function buildArticleHTML(article, containerEl) {
+      containerEl.innerHTML = "";
+
+      // 標題列 + 粵語朗讀
+      const titleRow = document.createElement("div");
+      titleRow.className = "article-title-row";
+      titleRow.innerHTML = `
+        <span class="article-emoji">${article.emoji || "🔬"}</span>
+        <h2 class="article-title">${article.title}</h2>
+      `;
+      const ttsBtn = document.createElement("button");
+      ttsBtn.className = "tts-btn";
+      ttsBtn.textContent = "🔊";
+      ttsBtn.title = "粵語朗讀短文";
+      ttsBtn.onclick = () => speakText(`${article.title}。${article.summary}`);
+      titleRow.appendChild(ttsBtn);
+      containerEl.appendChild(titleRow);
+
+      // 分段內文
+      const bodyDiv = document.createElement("div");
+      bodyDiv.className = "article-body";
+      const paragraphs = String(article.summary).split(/\n+/).filter(p => p.trim());
+      paragraphs.forEach(pText => {
+        const p = document.createElement("p");
+        p.textContent = pText.trim();
+        bodyDiv.appendChild(p);
       });
-    }
+      containerEl.appendChild(bodyDiv);
 
-    function selectNews(idx) {
-      window.speechSynthesis.cancel();
-      currentNews = allNews[idx];
-      const dateStr = String(currentNews.publish_date).split("T")[0];
-      document.getElementById("news-date").textContent = dateStr;
-      document.getElementById("news-emoji").textContent = currentNews.emoji || "🔬";
-      document.getElementById("news-title").textContent = currentNews.title;
-      document.getElementById("news-summary").textContent = currentNews.summary;
+      // 資訊來源標示與原文連結
+      const sourceBar = document.createElement("div");
+      sourceBar.className = "source-bar";
+      const srcName = article.source_name || "科學新聞資料庫";
+      const srcUrl = article.source_url || "#";
+      sourceBar.innerHTML = `
+        <span>📰 資訊來源：<strong>${srcName}</strong>（發布日期：${article.cleanDate}）</span>
+        ${srcUrl.startsWith("http") ? `<a class="source-link" href="${srcUrl}" target="_blank" rel="noopener noreferrer">🔗 查看原文報導 ↗</a>` : ""}
+      `;
+      containerEl.appendChild(sourceBar);
 
-      const quizzesEl = document.getElementById("news-quizzes");
-      quizzesEl.innerHTML = "";
-
+      // 讀後 MC 小測
       [1, 2].forEach(qNum => {
-        const qText = currentNews[`q${qNum}_question`];
+        const qText = article[`q${qNum}_question`];
         if (!qText) return;
 
         const block = document.createElement("div");
@@ -293,15 +397,15 @@
         optsDiv.className = "quiz-opts";
         const expDiv = document.createElement("div");
         expDiv.className = "quiz-exp";
-        expDiv.textContent = `💡 解析：${currentNews[`q${qNum}_explanation`]}`;
+        expDiv.textContent = `💡 科學解析：${article[`q${qNum}_explanation`]}`;
 
         ["A", "B", "C"].forEach(key => {
           const optBtn = document.createElement("button");
           optBtn.className = "quiz-opt";
-          optBtn.textContent = `${key}. ${currentNews[`q${qNum}_opt${key}`]}`;
+          optBtn.textContent = `${key}. ${article[`q${qNum}_opt${key}`]}`;
           optBtn.onclick = () => {
             optsDiv.querySelectorAll(".quiz-opt").forEach(b => b.disabled = true);
-            const ans = String(currentNews[`q${qNum}_answer`]).trim().toUpperCase();
+            const ans = String(article[`q${qNum}_answer`]).trim().toUpperCase();
             if (key === ans) {
               optBtn.classList.add("correct");
             } else {
@@ -316,20 +420,112 @@
 
         block.appendChild(optsDiv);
         block.appendChild(expDiv);
-        quizzesEl.appendChild(block);
+        containerEl.appendChild(block);
       });
     }
 
-    function speakNews() {
-      if (!currentNews || !("speechSynthesis" in window)) return;
+    // 1. 檢查並置頂顯示 7 天內的國家航天與創科文章
+    function renderNationalPinned() {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      const pinned = allNews.find(item => {
+        const isNat = String(item.tag || "").trim().toUpperCase() === "NATIONAL";
+        const d = new Date(item.cleanDate);
+        return isNat && !isNaN(d.getTime()) && d >= sevenDaysAgo;
+      });
+
+      if (pinned) {
+        buildArticleHTML(pinned, document.getElementById("national-content"));
+        document.getElementById("national-section").style.display = "block";
+      }
+    }
+
+    // 2. 渲染今日最新頭條分頁標籤
+    function renderLatestNewsTabs() {
+      const tabsEl = document.getElementById("news-tabs");
+      tabsEl.innerHTML = "";
+      const latestTwo = allNews.slice(0, 2);
+
+      latestTwo.forEach((article, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "news-tab-btn" + (idx === 0 ? " active" : "");
+        btn.textContent = `頭條 ${idx + 1}`;
+        btn.onclick = () => {
+          document.querySelectorAll(".news-tab-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          document.getElementById("reading-mode-badge").innerHTML = `📰 今日科學頭條 (${article.cleanDate})`;
+          buildArticleHTML(article, document.getElementById("active-news-content"));
+        };
+        tabsEl.appendChild(btn);
+      });
+
+      // 預設顯示最新第 1 篇
+      document.getElementById("reading-mode-badge").innerHTML = `📰 今日科學頭條 (${latestTwo[0].cleanDate})`;
+      buildArticleHTML(latestTwo[0], document.getElementById("active-news-content"));
+    }
+
+    // 3. 右側昔日科普文庫列表與日期篩選
+    function renderArchiveList(list) {
+      const listEl = document.getElementById("archive-list");
+      listEl.innerHTML = "";
+
+      if (list.length === 0) {
+        listEl.innerHTML = `<div style="color:#64748b; font-size:0.9rem; text-align:center; padding:20px;">該日期暫無科學文章記錄</div>`;
+        return;
+      }
+
+      list.forEach(article => {
+        const isNat = String(article.tag || "").trim().toUpperCase() === "NATIONAL";
+        const item = document.createElement("button");
+        item.className = "archive-item" + (isNat ? " is-national" : "");
+        item.innerHTML = `
+          <div class="archive-meta">
+            <span>${article.cleanDate}</span>
+            <span>${isNat ? "🚀 國家創科" : (article.source_name || "科普")}</span>
+          </div>
+          <div class="archive-item-title">${article.emoji || "🔬"} ${article.title}</div>
+        `;
+        item.onclick = () => {
+          window.speechSynthesis.cancel();
+          document.querySelectorAll(".archive-item").forEach(el => el.classList.remove("active"));
+          item.classList.add("active");
+          document.querySelectorAll(".news-tab-btn").forEach(b => b.classList.remove("active"));
+
+          document.getElementById("reading-mode-badge").innerHTML = `📚 昔日重溫 (${article.cleanDate})`;
+          buildArticleHTML(article, document.getElementById("active-news-content"));
+          document.getElementById("news-section").scrollIntoView({ behavior: "smooth" });
+        };
+        listEl.appendChild(item);
+      });
+    }
+
+    function filterArchiveByDate() {
+      const pickedDate = document.getElementById("archive-date-picker").value;
+      if (!pickedDate) {
+        renderArchiveList(allNews);
+        return;
+      }
+      const filtered = allNews.filter(a => a.cleanDate === pickedDate);
+      renderArchiveList(filtered);
+    }
+
+    function resetArchiveFilter() {
+      document.getElementById("archive-date-picker").value = "";
+      renderArchiveList(allNews);
+      renderLatestNewsTabs();
+    }
+
+    function speakText(text) {
+      if (!("speechSynthesis" in window)) return;
       window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(`${currentNews.title}。${currentNews.summary}`);
+      const utter = new SpeechSynthesisUtterance(text);
       utter.lang = "zh-HK";
       utter.rate = 0.95;
       window.speechSynthesis.speak(utter);
     }
 
-    // 盲盒與圖鑑邏輯
+    // 盲盒與圖鑑牆邏輯
     function drawCard() {
       const lockedCards = allCards.filter(c => !unlockedIds.includes(String(c.id)));
       const pool = lockedCards.length > 0 ? lockedCards : allCards;
@@ -445,15 +641,11 @@
       document.getElementById("detail-view").style.display = "block";
     }
     function speakCard(card, isStageMode) {
-      if (!card || !("speechSynthesis" in window)) return;
-      window.speechSynthesis.cancel();
+      if (!card) return;
       const textToRead = isStageMode
         ? (document.getElementById("explanation-box").style.display === "block" ? `科學大揭秘：${card.explanation}` : `${card.question}。A，${card.optA}。B，${card.optB}。C，${card.optC}。`)
         : `${card.question}。正確答案係 ${card["opt" + String(card.answer).trim().toUpperCase()]}。科學大揭秘：${card.explanation}`;
-      const utter = new SpeechSynthesisUtterance(textToRead);
-      utter.lang = "zh-HK";
-      utter.rate = 0.95;
-      window.speechSynthesis.speak(utter);
+      speakText(textToRead);
     }
 
     initApp();
