@@ -285,12 +285,24 @@
 
     <!-- 右側：雙排行榜 + 昔日科普文庫 -->
     <aside class="right-col">
-      <!-- 模組 A：閱讀與問答雙排行榜 -->
+      <!-- 模組 A：閱讀與問答雙排行榜（支援本月 / 全學年切換） -->
       <div class="panel-box rank-panel">
         <div class="rank-tabs">
           <button class="rank-tab active" id="tab-read-rank" onclick="switchRankTab('READ')">📖 閱讀達人榜</button>
           <button class="rank-tab" id="tab-quiz-rank" onclick="switchRankTab('QUIZ')">🎯 問答神射手榜</button>
         </div>
+
+        <div style="display:flex; gap:6px; margin-bottom:12px;">
+          <button id="period-month-btn" onclick="switchRankPeriod('MONTH')"
+                  style="flex:1; padding:6px; border-radius:8px; border:1.5px solid #2563eb; background:#eff6ff; color:#1d4ed8; font-weight:bold; font-size:0.84rem; cursor:pointer;">
+            📅 本月榜
+          </button>
+          <button id="period-year-btn" onclick="switchRankPeriod('YEAR')"
+                  style="flex:1; padding:6px; border-radius:8px; border:1.5px solid #cbd5e1; background:#ffffff; color:#64748b; font-weight:bold; font-size:0.84rem; cursor:pointer;">
+            🏆 全學年總榜
+          </button>
+        </div>
+
         <div class="rank-list" id="rank-list"></div>
         <div class="my-rank-footer" id="my-rank-footer">
           <span>我的排名：-</span>
