@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>鳳溪第一小學科學科 — 教師科普審批與投票平台</title>
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #2563eb;
+      --bg: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-sub: #475569;
+      --border: #e2e8f0;
+      --voted-green: #16a34a;
+      --voted-bg: #f0fdf4;
+      --national-red: #dc2626;
+      --national-gold: #d97706;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: "Noto Sans TC", "PingFang HK", "Microsoft JhengHei", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+
+    /* ================= 登入畫面 ================= */
+    .login-wrapper {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    }
+
+    .login-card {
+      background: white;
+      width: 100%;
+      max-width: 420px;
+      border-radius: 24px;
+      padding: 36px 30px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+      text-align: center;
+    }
+
+    .login-icon {
+      font-size: 3.4rem;
+      margin-bottom: 10px;
+    }
+
+    .login-card h1 {
+      font-size: 1.45rem;
+      color: var(--primary);
+      margin: 0 0 6px 0;
+    }
+
+    .login-card p {
+      color: var(--text-sub);
+      font-size: 0.92rem;
+      margin: 0 0 24px 0;
+    }
+
+    .form-group {
+      text-align: left;
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: bold;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      color: #334155;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus {
+      border-color: var(--primary-light);
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 13px;
+      background: var(--primary-light);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: background 0.2s;
+    }
+
+    .login-btn:hover {
+      background: var(--primary);
+    }
+
+    .login-btn:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .login-error {
+      color: #dc2626;
+      background: #fee2e2;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      margin-top: 14px;
+      display: none;
+    }
+
+    /* ================= 頂部懸浮狀態列 ================= */
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      padding: 12px 20px;
+    }
+
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .teacher-info h2 {
+      margin: 0;
+      font-size: 1.15rem;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .week-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      margin-top: 3px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .quota-pill {
+      background: #eff6ff;
+      color: var(--primary-light);
+      border: 1.5px solid #bfdbfe;
+      padding: 7px 14px;
+      border-radius: 50px;
+      font-weight: bold;
+      font-size: 0.92rem;
+    }
+
+    .quota-pill.full {
+      background: #dcfce7;
+      color: #15803d;
+      border-color: #86efac;
+    }
+
+    .icon-btn {
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      color: #334155;
+      padding: 7px 13px;
+      border-radius: 10px;
+      font-weight: bold;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+
+    .icon-btn:hover {
+      background: #e2e8f0;
+    }
+
+    /* ================= 主容器與工具列 ================= */
+    .container {
+      max-width: 960px;
+      margin: 22px auto 50px auto;
+      padding: 0 16px;
+    }
+
+    .lock-banner {
+      background: #fef3c7;
+      border: 1.5px solid #f59e0b;
+      color: #92400e;
+      padding: 12px 18px;
+      border-radius: 14px;
+      font-weight: bold;
+      margin-bottom: 18px;
+      display: none;
+      text-align: center;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 8px 15px;
+      border-radius: 50px;
+      border: 1.5px solid #cbd5e1;
+      background: white;
+      color: #475569;
+      font-weight: bold;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .sort-select {
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1.5px solid #cbd5e1;
+      background: white;
+      font-weight: bold;
+      color: #334155;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+
+    /* ================= 候選文章審閱卡片 ================= */
+    .article-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .candidate-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 22px 24px;
+      border: 2px solid var(--border);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .candidate-card.is-national {
+      border-left: 7px solid var(--national-red);
+    }
+
+    .candidate-card.is-voted {
+      border-color: var(--voted-green);
+      background: var(--voted-bg);
+      box-shadow: 0 8px 20px rgba(22, 163, 74, 0.12);
+    }
+
+    .card-top-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .badges {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .id-badge {
+      background: #e2e8f0;
+      color: #334155;
+      padding: 3px 9px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+
+    .tag-badge {
+      padding: 4px 11px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: bold;
+    }
+
+    .tag-national {
+      background: #fef2f2;
+      color: var(--national-red);
+      border: 1px solid #fecaca;
+    }
+
+    .tag-normal {
+      background: #f0f9ff;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+    }
+
+    .source-info {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .source-info a {
+      color: var(--primary-light);
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .source-info a:hover {
+      text-decoration: underline;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .card-emoji {
+      font-size: 2.1rem;
+      line-height: 1.1;
+    }
+
+    .card-title {
+      margin: 0;
+      font-size: 1.25rem;
+      color: #0f172a;
+      line-height: 1.4;
+      flex: 1;
+    }
+
+    .tts-btn {
+      background: #e0f2fe;
+      border: none;
+      border-radius: 50%;
+      width: 34px;
+      height: 34px;
+      cursor: pointer;
+      font-size: 1rem;
+      flex-shrink: 0;
+      transition: transform 0.15s;
+    }
+
+    .tts-btn:hover {
+      transform: scale(1.08);
+    }
+
+    .card-summary {
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 14px 16px;
+      line-height: 1.75;
+      font-size: 1rem;
+      color: #1e293b;
+      margin-bottom: 14px;
+    }
+
+    .card-summary p {
+      margin: 0 0 10px 0;
+    }
+
+    .card-summary p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* 讀後 MC 預覽摺疊區 */
+    .quiz-toggle-btn {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      padding: 7px 14px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .quiz-toggle-btn:hover {
+      background: #f1f5f9;
+    }
+
+    .quiz-preview-box {
+      display: none;
+      background: #f8fafc;
+      border: 1px dashed #94a3b8;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .quiz-item {
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .quiz-item:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .q-title {
+      font-weight: bold;
+      color: #0f172a;
+      margin-bottom: 6px;
+      font-size: 0.96rem;
+    }
+
+    .q-opts {
+      font-size: 0.92rem;
+      color: #334155;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+
+    .q-opt.is-ans {
+      color: #15803d;
+      font-weight: bold;
+    }
+
+    .q-exp {
+      font-size: 0.88rem;
+      color: #854d0e;
+      background: #fefce8;
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+
+    /* 底部投票互動欄 */
+    .vote-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-top: 14px;
+      border-top: 1.5px solid #e2e8f0;
+    }
+
+    .vote-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .vote-count {
+      font-weight: bold;
+      font-size: 1.02rem;
+      color: #1e293b;
+    }
+
+    .voters-list {
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+
+    .vote-action-btn {
+      padding: 11px 22px;
+      border-radius: 12px;
+      border: 2px solid var(--primary-light);
+      background: white;
+      color: var(--primary-light);
+      font-weight: bold;
+      font-size: 0.98rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      min-width: 175px;
+    }
+
+    .vote-action-btn:hover:not(:disabled) {
+      background: #eff6ff;
+    }
+
+    .vote-action-btn.voted {
+      background: var(--voted-green);
+      border-color: var(--voted-green);
+      color: white;
+    }
+
+    .vote-action-btn.voted:hover:not(:disabled) {
+      background: #15803d;
+    }
+
+    .vote-action-btn:disabled {
+      background: #e2e8f0;
+      border-color: #cbd5e1;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .loading-state, .empty-state {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--text-sub);
+      font-weight: bold;
+      font-size: 1.05rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== 畫面 1：科組教師登入視窗 ==================== -->
+  <div class="login-wrapper" id="login-screen">
+    <div class="login-card">
+      <div class="login-icon">🏫</div>
+      <h1>鳳溪第一小學科學科</h1>
+      <p>教師科普審批與每週協作投票平台</p>
+
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="login-id">教師編號 / 姓名 / 學校電郵</label>
+          <input type="text" id="login-id" placeholder="例如：T01 或 何Sir 或 karson@fk1ps.edu.hk" required>
+        </div>
+        <div class="form-group">
+          <label for="login-pwd">登入密碼</label>
+          <input type="password" id="login-pwd" placeholder="請輸入專屬密碼" required>
+        </div>
+        <button type="submit" class="login-btn" id="login-submit-btn">登入投票平台</button>
+      </form>
+
+      <div class="login-error" id="login-error"></div>
+    </div>
+  </div>
+
+  <!-- ==================== 畫面 2：投票主介面 ==================== -->
+  <div id="app-screen" style="display: none;">
+    <header class="sticky-header">
+      <div class="header-inner">
+        <div class="teacher-info">
+          <h2>👋 歡迎，<span id="display-teacher-name">老師</span></h2>
+          <div class="week-subtitle" id="week-info-text">正在載入本週期數...</div>
+        </div>
+
+        <div class="header-actions">
+          <div class="quota-pill" id="quota-pill">已投選：0 / 5 篇</div>
+          <button class="icon-btn" onclick="loadCandidates()" title="重新整理最新票數">🔄 重新整理</button>
+          <button class="icon-btn" onclick="handleLogout()">登出</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="lock-banner" id="lock-banner">
+        🔒 本週投票已於週五 18:00 截止鎖定，系統將於下週一早上自動結算最高票 5 篇並電郵公布結果。
+      </div>
+
+      <div class="toolbar">
+        <div class="filter-group">
+          <button class="filter-btn active" onclick="setFilter('ALL', this)" id="btn-filter-all">全部候選 (0)</button>
+          <button class="filter-btn" onclick="setFilter('MY_VOTES', this)" id="btn-filter-mine">✅ 我已投票 (0)</button>
+          <button class="filter-btn" onclick="setFilter('NATIONAL', this)" id="btn-filter-nat">🚀 國家創科專題 (0)</button>
+        </div>
+
+        <select class="sort-select" id="sort-select" onchange="renderArticles()">
+          <option value="VOTES_DESC">🔥 按目前票數由高至低排序</option>
+          <option value="ID_ASC">🔢 按文章編號順序排列</option>
+        </select>
+      </div>
+
+      <div id="loading-box" class="loading-state">⏳ 正在從試算表載入本週候選科普文章與即時票數...</div>
+      <div class="article-list" id="article-list"></div>
+    </main>
+  </div>
+
+  <script>
+    // 請貼上你學校 Google Apps Script 部署後的最新 Web App URL
+    const API_URL = "https://script.google.com/macros/s/AKfycbzQ4IVakMBgvVsuFPiXJPmA33Sb6o68vPP7sd8bJjJ9XKYM5qofVDRPODUx8-nB6DeAXQ/exec";
+    const MAX_VOTES = 5;
+
+    let currentTeacher = JSON.parse(localStorage.getItem("fk1ps_science_teacher") || "null");
+    let candidates = [];
+    let currentFilter = "ALL";
+    let isVotingLocked = false;
+
+    // 初始化檢查登入狀態
+    window.addEventListener("DOMContentLoaded", () => {
+      if (currentTeacher && currentTeacher.name) {
+        showAppScreen();
+      }
+    });
+
+    // 處理登入
+    async function handleLogin(e) {
+      e.preventDefault();
+      const loginId = document.getElementById("login-id").value.trim();
+      const password = document.getElementById("login-pwd").value.trim();
+      const btn = document.getElementById("login-submit-btn");
+      const errBox = document.getElementById("login-error");
+
+      errBox.style.display = "none";
+      btn.disabled = true;
+      btn.textContent = "正在驗證帳號...";
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "login",
+            loginId: loginId,
+            password: password
+          })
+        });
+        const data = await res.json();
+
+        if (data.status === "success") {
+          currentTeacher = data.teacher;
+          localStorage.setItem("fk1ps_science_teacher", JSON.stringify(currentTeacher));
+          showAppScreen();
+        } else {
+          errBox.textContent = "❌ " + (data.message || "登入失敗");
+          errBox.style.display = "block";
+        }
+      } catch (err) {
+        errBox.textContent = "❌ 連線失敗，請檢查網絡或 API_URL 設定。";
+        errBox.style.display = "block";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "登入投票平台";
+      }
+    }
+
+    function handleLogout() {
+      window.speechSynthesis.cancel();
+      localStorage.removeItem("fk1ps_science_teacher");
+      currentTeacher = null;
+      document.getElementById("app-screen").style.display = "none";
+      document.getElementById("login-screen").style.display = "flex";
+      document.getElementById("login-pwd").value = "";
+    }
+
+    function showAppScreen() {
+      document.getElementById("login-screen").style.display = "none";
+      document.getElementById("app-screen").style.display = "block";
+      document.getElementById("display-teacher-name").textContent = currentTeacher.name;
+      loadCandidates();
+    }
+
+    // 從後端載入候選文章
+    async function loadCandidates() {
+      const loadingBox = document.getElementById("loading-box");
+      const listEl = document.getElementById("article-list");
+      loadingBox.style.display = "block";
+      listEl.innerHTML = "";
+
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+
+        if (data.status === "success") {
+          candidates = (data.candidates || []).map(item => {
+            const votersStr = String(item.voters || "").trim();
+            const votersArr = votersStr ? votersStr.split(",").map(s => s.trim()).filter(Boolean) : [];
+            return {
+              ...item,
+              votes: Number(item.votes || votersArr.length || 0),
+              votersArr: votersArr
+            };
+          });
+
+          // 檢查週次與鎖定狀態
+          if (candidates.length > 0) {
+            const batchWeek = candidates[0].batch_week || "";
+            isVotingLocked = candidates.every(c => String(c.status).trim().toUpperCase() === "LOCKED");
+            document.getElementById("week-info-text").textContent =
+              `期數：${batchWeek} ｜ ${isVotingLocked ? "🔒 本週已截票鎖定" : "⏰ 週五 18:00 截止（每人可選 5 篇）"}`;
+            document.getElementById("lock-banner").style.display = isVotingLocked ? "block" : "none";
+          } else {
+            document.getElementById("week-info-text").textContent = "目前暫無待投票的候選文章";
+          }
+
+          updateCountsAndQuota();
+          renderArticles();
+        }
+      } catch (err) {
+        loadingBox.textContent = "❌ 載入失敗，請按右上角「重新整理」重試。";
+        return;
+      }
+
+      loadingBox.style.display = "none";
+    }
+
+    // 更新個人配額與篩選按鈕數字
+    function updateCountsAndQuota() {
+      const myName = currentTeacher.name;
+      const myVotedCount = candidates.filter(c => c.votersArr.includes(myName)).length;
+      const nationalCount = candidates.filter(c => String(c.tag).toUpperCase() === "NATIONAL").length;
+
+      const pill = document.getElementById("quota-pill");
+      if (myVotedCount >= MAX_VOTES) {
+        pill.textContent = `✅ 已投滿：${myVotedCount} / ${MAX_VOTES} 篇`;
+        pill.classList.add("full");
+      } else {
+        pill.textContent = `已投選：${myVotedCount} / ${MAX_VOTES} 篇`;
+        pill.classList.remove("full");
+      }
+
+      document.getElementById("btn-filter-all").textContent = `全部候選 (${candidates.length})`;
+      document.getElementById("btn-filter-mine").textContent = `✅ 我已投票 (${myVotedCount})`;
+      document.getElementById("btn-filter-nat").textContent = `🚀 國家創科專題 (${nationalCount})`;
+    }
+
+    function setFilter(filterType, btnEl) {
+      currentFilter = filterType;
+      document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+      btnEl.classList.add("active");
+      renderArticles();
+    }
+
+    // 渲染候選文章卡片
+    function renderArticles() {
+      const listEl = document.getElementById("article-list");
+      listEl.innerHTML = "";
+      const myName = currentTeacher.name;
+      const sortMode = document.getElementById("sort-select").value;
+
+      let filtered = [...candidates];
+      if (currentFilter === "MY_VOTES") {
+        filtered = filtered.filter(c => c.votersArr.includes(myName));
+      } else if (currentFilter === "NATIONAL") {
+        filtered = filtered.filter(c => String(c.tag).toUpperCase() === "NATIONAL");
+      }
+
+      if (sortMode === "VOTES_DESC") {
+        filtered.sort((a, b) => b.votes - a.votes);
+      } else {
+        filtered.sort((a, b) => String(a.news_id).localeCompare(String(b.news_id)));
+      }
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = `<div class="empty-state">📭 此分類下暫無候選文章</div>`;
+        return;
+      }
+
+      const myTotalVotes = candidates.filter(c => c.votersArr.includes(myName)).length;
+
+      filtered.forEach(item => {
+        const isNat = String(item.tag || "").toUpperCase() === "NATIONAL";
+        const isVotedByMe = item.votersArr.includes(myName);
+        const cardLocked = String(item.status || "").toUpperCase() !== "CANDIDATE";
+
+        const card = document.createElement("div");
+        card.className = `candidate-card ${isNat ? "is-national" : ""} ${isVotedByMe ? "is-voted" : ""}`;
+
+        // 段落排版
+        const paragraphsHtml = String(item.summary || "")
+          .split(/\n+/)
+          .filter(p => p.trim())
+          .map(p => `<p>${escapeHtml(p.trim())}</p>`)
+          .join("");
+
+        // MC 預覽內容
+        const quizHtml = [1, 2].map(num => {
+          const q = item[`q${num}_question`];
+          if (!q) return "";
+          const ans = String(item[`q${num}_answer`] || "").trim().toUpperCase();
+          const opts = ["A", "B", "C"].map(k => {
+            const isCorrect = k === ans;
+            return `<div class="q-opt ${isCorrect ? "is-ans" : ""}">${k}. ${escapeHtml(item[`q${num}_opt${k}`])} ${isCorrect ? "✅（標準答案）" : ""}</div>`;
+          }).join("");
+          return `
+            <div class="quiz-item">
+              <div class="q-title">問題 ${num}：${escapeHtml(q)}</div>
+              <div class="q-opts">${opts}</div>
+              <div class="q-exp">💡 內文依據解析：${escapeHtml(item[`q${num}_explanation`])}</div>
+            </div>
+          `;
+        }).join("");
+
+        const votersDisplay = item.votersArr.length > 0
+          ? `投票老師：${item.votersArr.join("、")}`
+          : "暫未有老師投票，成為第一位推薦者！";
+
+        let btnText = isVotedByMe ? "✅ 已投選（點擊取消）" : "🤍 投選此文章";
+        let btnDisabled = false;
+        if (cardLocked) {
+          btnText = "🔒 投票已截止";
+          btnDisabled = true;
+        } else if (!isVotedByMe && myTotalVotes >= MAX_VOTES) {
+          btnText = "已達 5 票上限";
+          btnDisabled = true;
+        }
+
+        card.innerHTML = `
+          <div class="card-top-meta">
+            <div class="badges">
+              <span class="id-badge">${escapeHtml(item.news_id)}</span>
+              ${isNat
+                ? `<span class="tag-badge tag-national">🚀 國家航天與創科專題（入選置頂一週）</span>`
+                : `<span class="tag-badge tag-normal">🔬 每日趣味科普</span>`}
+            </div>
+            <div class="source-info">
+              <span>📰 ${escapeHtml(item.source_name || "官方科普")}</span>
+              ${String(item.source_url || "").startsWith("http")
+                ? `<a href="${item.source_url}" target="_blank" rel="noopener noreferrer">🔗 原文報導 ↗</a>`
+                : ""}
+            </div>
+          </div>
+
+          <div class="title-row">
+            <span class="card-emoji">${item.emoji || "🔬"}</span>
+            <h3 class="card-title">${escapeHtml(item.title)}</h3>
+            <button class="tts-btn" onclick="speakArticle('${item.news_id}')" title="粵語朗讀測試">🔊</button>
+          </div>
+
+          <div class="card-summary">${paragraphsHtml}</div>
+
+          <button class="quiz-toggle-btn" onclick="toggleQuizPreview('${item.news_id}', this)">
+            📝 展開查看 2 題讀後小測與答案解析 ▾
+          </button>
+          <div class="quiz-preview-box" id="quiz-box-${item.news_id}">
+            ${quizHtml}
+          </div>
+
+          <div class="vote-footer">
+            <div class="vote-stats">
+              <span class="vote-count">🔥 目前累積：${item.votes} 票</span>
+              <span class="voters-list">${escapeHtml(votersDisplay)}</span>
+            </div>
+            <button class="vote-action-btn ${isVotedByMe ? "voted" : ""}"
+                    id="vote-btn-${item.news_id}"
+                    ${btnDisabled ? "disabled" : ""}
+                    onclick="toggleVote('${item.news_id}')">
+              ${btnText}
+            </button>
+          </div>
+        `;
+
+        listEl.appendChild(card);
+      });
+    }
+
+    // 展開/收合 MC 題目預覽
+    function toggleQuizPreview(newsId, btnEl) {
+      const box = document.getElementById(`quiz-box-${newsId}`);
+      if (box.style.display === "block") {
+        box.style.display = "none";
+        btnEl.textContent = "📝 展開查看 2 題讀後小測與答案解析 ▾";
+      } else {
+        box.style.display = "block";
+        btnEl.textContent = "📝 收合讀後小測與答案解析 ▴";
+      }
+    }
+
+    // 粵語朗讀測試
+    function speakArticle(newsId) {
+      const item = candidates.find(c => c.news_id === newsId);
+      if (!item || !("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(`${item.title}。${item.summary}`);
+      utter.lang = "zh-HK";
+      utter.rate = 0.95;
+      window.speechSynthesis.speak(utter);
+    }
+
+    // 投票 / 取消投票 API 互動
+    async function toggleVote(newsId) {
+      const btn = document.getElementById(`vote-btn-${newsId}`);
+      if (!btn || btn.disabled) return;
+
+      btn.disabled = true;
+      btn.textContent = "⏳ 處理中...";
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "toggleVote",
+            teacherName: currentTeacher.name,
+            newsId: newsId
+          })
+        });
+        const data = await res.json();
+
+        if (data.status === "success") {
+          const target = candidates.find(c => c.news_id === newsId);
+          if (target) {
+            target.votes = Number(data.votes);
+            target.votersArr = data.voters ? data.voters.split(",").map(s => s.trim()).filter(Boolean) : [];
+          }
+          updateCountsAndQuota();
+          renderArticles();
+        } else {
+          alert("⚠️ " + (data.message || "投票操作失敗"));
+          renderArticles();
+        }
+      } catch (err) {
+        alert("❌ 網絡連線異常，請稍後再試。");
+        renderArticles();
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+  </script>
+</body>
+</html>
