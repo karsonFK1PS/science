@@ -108,18 +108,10 @@
     .mode-badge {
       background: #e0f2fe; color: #0369a1; padding: 5px 13px; border-radius: 20px; font-weight: bold; font-size: 0.86rem;
     }
-    .mode-badge.makeup {
-      background: #fef3c7; color: #92400e;
-    }
-    .done-badge {
-      background: #dcfce7; color: #15803d; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.85rem;
-    }
-    .points-hint-badge {
-      background: #eff6ff; color: #1d4ed8; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.84rem;
-    }
-    .points-hint-badge.half {
-      background: #fff7ed; color: #c2410c;
-    }
+    .mode-badge.makeup { background: #fef3c7; color: #92400e; }
+    .done-badge { background: #dcfce7; color: #15803d; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; }
+    .points-hint-badge { background: #eff6ff; color: #1d4ed8; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.84rem; }
+    .points-hint-badge.half { background: #fff7ed; color: #c2410c; }
 
     .article-title-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
     .article-emoji { font-size: 2.5rem; line-height: 1; }
@@ -166,7 +158,7 @@
       margin-top: 12px; display: none;
     }
 
-    /* ================= 右側 1：雙榮譽排行榜 ================= */
+    /* ================= 右側 1：雙榮譽排行榜（支援本月 / 全學年切換） ================= */
     .panel-box {
       background: white; border-radius: 24px; padding: 20px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.06);
@@ -174,12 +166,20 @@
     .panel-box.rank-panel { border-top: 6px solid #f59e0b; }
     .panel-box.archive-panel { border-top: 6px solid #4f46e5; }
 
-    .rank-tabs { display: flex; gap: 6px; margin-bottom: 14px; background: #f1f5f9; padding: 4px; border-radius: 12px; }
+    .rank-tabs { display: flex; gap: 6px; margin-bottom: 10px; background: #f1f5f9; padding: 4px; border-radius: 12px; }
     .rank-tab {
       flex: 1; padding: 8px 6px; border: none; border-radius: 9px; background: transparent;
       font-weight: bold; font-size: 0.88rem; color: #475569; cursor: pointer; transition: all 0.15s;
     }
     .rank-tab.active { background: white; color: #b45309; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+
+    .period-switch { display: flex; gap: 6px; margin-bottom: 12px; }
+    .period-btn {
+      flex: 1; padding: 6px; border-radius: 8px; border: 1.5px solid #cbd5e1;
+      background: #ffffff; color: #64748b; font-weight: bold; font-size: 0.84rem; cursor: pointer;
+    }
+    .period-btn.active-month { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; }
+    .period-btn.active-year { border-color: #d97706; background: #fffbeb; color: #b45309; }
 
     .rank-list { display: flex; flex-direction: column; gap: 7px; }
     .rank-row {
@@ -233,12 +233,12 @@
 
       <form onsubmit="handleStudentLogin(event)">
         <div class="input-group">
-          <label for="stu-account">學生帳號（例如：B21000@fk1ps.hk）</label>
+          <label for="stu-account">學生帳號（例如：B23001 或 B23001@fk1ps.hk）</label>
           <input type="text" id="stu-account" placeholder="請輸入學生編號或學校電郵" required>
         </div>
         <div class="input-group">
           <label for="stu-pwd">登入密碼（出生日期 YYYYMMDD）</label>
-          <input type="password" id="stu-pwd" placeholder="例如：20100101" required>
+          <input type="password" id="stu-pwd" placeholder="例如：20171116" required>
         </div>
         <button type="submit" class="login-btn" id="stu-login-btn">登入開始探索 🚀</button>
       </form>
@@ -292,15 +292,9 @@
           <button class="rank-tab" id="tab-quiz-rank" onclick="switchRankTab('QUIZ')">🎯 問答神射手榜</button>
         </div>
 
-        <div style="display:flex; gap:6px; margin-bottom:12px;">
-          <button id="period-month-btn" onclick="switchRankPeriod('MONTH')"
-                  style="flex:1; padding:6px; border-radius:8px; border:1.5px solid #2563eb; background:#eff6ff; color:#1d4ed8; font-weight:bold; font-size:0.84rem; cursor:pointer;">
-            📅 本月榜
-          </button>
-          <button id="period-year-btn" onclick="switchRankPeriod('YEAR')"
-                  style="flex:1; padding:6px; border-radius:8px; border:1.5px solid #cbd5e1; background:#ffffff; color:#64748b; font-weight:bold; font-size:0.84rem; cursor:pointer;">
-            🏆 全學年總榜
-          </button>
+        <div class="period-switch">
+          <button class="period-btn active-month" id="period-month-btn" onclick="switchRankPeriod('MONTH')">📅 本月榜</button>
+          <button class="period-btn" id="period-year-btn" onclick="switchRankPeriod('YEAR')">🏆 全學年總榜</button>
         </div>
 
         <div class="rank-list" id="rank-list"></div>
@@ -329,10 +323,19 @@
     let currentStudent = JSON.parse(localStorage.getItem("fk1ps_sci_student") || "null");
     let serverTodayStr = new Date().toISOString().split("T")[0];
     let allNews = [];
-    let readLeaderboard = [];
-    let quizLeaderboard = [];
-    let myStats = { readCount: 0, readRank: "-", totalScore: 0, quizRank: "-", completedIds: [] };
-    let activeRankMode = "READ";
+    let rankStore = {
+      monthLabel: "本月",
+      yearLabel: "全學年",
+      monthlyReadTop10: [],
+      monthlyQuizTop10: [],
+      yearlyReadTop10: [],
+      yearlyQuizTop10: [],
+      myMonthlyStats: { readCount: 0, readRank: "未上榜", totalScore: 0, quizRank: "未上榜", completedIds: [] },
+      myYearlyStats: { readCount: 0, readRank: "未上榜", totalScore: 0, quizRank: "未上榜", completedIds: [] }
+    };
+    let myStats = rankStore.myYearlyStats;
+    let activeRankMode = "READ";     // READ 或 QUIZ
+    let activeRankPeriod = "MONTH";  // MONTH 或 YEAR
     let currentArticleId = null;
 
     window.addEventListener("DOMContentLoaded", () => {
@@ -365,9 +368,7 @@
 
         if (data.status === "success") {
           currentStudent = data.student;
-          readLeaderboard = data.readLeaderboard || [];
-          quizLeaderboard = data.quizLeaderboard || [];
-          myStats = data.myStats || myStats;
+          syncRankDataFromResponse(data);
           localStorage.setItem("fk1ps_sci_student", JSON.stringify(currentStudent));
           enterPortal();
         } else {
@@ -409,12 +410,9 @@
             ...item,
             cleanDate: String(item.publish_date).split("T")[0]
           }));
-          readLeaderboard = data.readLeaderboard || readLeaderboard;
-          quizLeaderboard = data.quizLeaderboard || quizLeaderboard;
-          myStats = data.myStats || myStats;
+          syncRankDataFromResponse(data);
 
           const pinnedArticle = renderNationalPinned();
-          // 找出非置頂的最新一篇作為今日頭條，若無則取全部最新一篇
           const dailyCandidates = pinnedArticle
             ? allNews.filter(a => a.news_id !== pinnedArticle.news_id)
             : allNews;
@@ -435,7 +433,22 @@
       }
     }
 
-    // 判斷文章是否屬於「準時閱讀或7天置頂期內」
+    function syncRankDataFromResponse(data) {
+      if (!data) return;
+      if (data.monthLabel) rankStore.monthLabel = data.monthLabel;
+      if (data.yearLabel) rankStore.yearLabel = data.yearLabel;
+      if (data.monthlyReadTop10) rankStore.monthlyReadTop10 = data.monthlyReadTop10;
+      if (data.monthlyQuizTop10) rankStore.monthlyQuizTop10 = data.monthlyQuizTop10;
+      if (data.yearlyReadTop10) rankStore.yearlyReadTop10 = data.yearlyReadTop10;
+      if (data.yearlyQuizTop10) rankStore.yearlyQuizTop10 = data.yearlyQuizTop10;
+      if (data.myMonthlyStats) rankStore.myMonthlyStats = data.myMonthlyStats;
+      if (data.myYearlyStats) rankStore.myYearlyStats = data.myYearlyStats;
+
+      myStats = rankStore.myYearlyStats;
+      document.getElementById("period-month-btn").textContent = `📅 本月榜 (${rankStore.monthLabel})`;
+      document.getElementById("period-year-btn").textContent = `🏆 全學年總榜 (${rankStore.yearLabel})`;
+    }
+
     function isArticleTimely(article) {
       if (!article || !article.cleanDate) return true;
       if (article.cleanDate === serverTodayStr) return true;
@@ -449,7 +462,6 @@
       return false;
     }
 
-    // 置頂顯示 7 天內的國家航天與創科專題
     function renderNationalPinned() {
       const pinned = allNews.find(item => {
         const isNat = String(item.tag || "").trim().toUpperCase() === "NATIONAL";
@@ -467,7 +479,6 @@
       return null;
     }
 
-    // 切換主閱讀區文章
     function selectArticleToRead(article) {
       currentArticleId = article.news_id;
       const timely = isArticleTimely(article);
@@ -604,9 +615,7 @@
         });
         const data = await res.json();
         if (data.status === "success") {
-          readLeaderboard = data.readLeaderboard || readLeaderboard;
-          quizLeaderboard = data.quizLeaderboard || quizLeaderboard;
-          myStats = data.myStats || myStats;
+          syncRankDataFromResponse(data);
 
           if (data.alreadyCompleted) {
             toastEl.textContent = `✅ 本篇答對 ${correctCount} 題（你之前已完成過此篇挑戰，不重複計分）`;
@@ -635,14 +644,37 @@
       renderLeaderboard();
     }
 
+    function switchRankPeriod(period) {
+      activeRankPeriod = period;
+      const mBtn = document.getElementById("period-month-btn");
+      const yBtn = document.getElementById("period-year-btn");
+      if (period === "MONTH") {
+        mBtn.classList.add("active-month");
+        yBtn.classList.remove("active-year");
+      } else {
+        yBtn.classList.add("active-year");
+        mBtn.classList.remove("active-month");
+      }
+      renderLeaderboard();
+    }
+
     function renderLeaderboard() {
       const listEl = document.getElementById("rank-list");
       listEl.innerHTML = "";
-      const list = activeRankMode === "READ" ? readLeaderboard : quizLeaderboard;
+
+      let list = [];
+      if (activeRankPeriod === "MONTH") {
+        list = activeRankMode === "READ" ? rankStore.monthlyReadTop10 : rankStore.monthlyQuizTop10;
+      } else {
+        list = activeRankMode === "READ" ? rankStore.yearlyReadTop10 : rankStore.yearlyQuizTop10;
+      }
+
+      const currentMyStats = activeRankPeriod === "MONTH" ? rankStore.myMonthlyStats : rankStore.myYearlyStats;
+      const periodName = activeRankPeriod === "MONTH" ? rankStore.monthLabel : "全學年";
       const myAcc = currentStudent.account.toLowerCase();
 
       if (list.length === 0) {
-        listEl.innerHTML = `<div style="text-align:center; color:#64748b; padding:18px; font-size:0.9rem;">暫未有同學上榜，快完成第一篇閱讀搶佔榜首！</div>`;
+        listEl.innerHTML = `<div style="text-align:center; color:#64748b; padding:18px; font-size:0.9rem;">${periodName}暫未有同學上榜，快完成閱讀搶佔榜首！</div>`;
       } else {
         list.forEach((item, idx) => {
           const isMe = String(item.account).toLowerCase() === myAcc;
@@ -663,13 +695,13 @@
       const footer = document.getElementById("my-rank-footer");
       if (activeRankMode === "READ") {
         footer.innerHTML = `
-          <span>🏅 我的閱讀排名：<strong>${myStats.readRank}</strong></span>
-          <span>已讀 <strong>${myStats.readCount}</strong> 篇</span>
+          <span>🏅 ${periodName}閱讀排名：<strong>${currentMyStats.readRank}</strong></span>
+          <span>已讀 <strong>${currentMyStats.readCount}</strong> 篇</span>
         `;
       } else {
         footer.innerHTML = `
-          <span>🎯 我的問答排名：<strong>${myStats.quizRank}</strong></span>
-          <span>總分 <strong>${myStats.totalScore}</strong> 分</span>
+          <span>🎯 ${periodName}問答排名：<strong>${currentMyStats.quizRank}</strong></span>
+          <span>總分 <strong>${currentMyStats.totalScore}</strong> 分</span>
         `;
       }
     }
