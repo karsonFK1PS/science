@@ -716,7 +716,7 @@
             const batchWeek = candidates[0].batch_week || "";
             isVotingLocked = candidates.every(c => String(c.status).trim().toUpperCase() === "LOCKED");
             document.getElementById("week-info-text").textContent =
-              `期數：${batchWeek} ｜ ${isVotingLocked ? "🔒 本週已截票鎖定" : "⏰ 週五 18:00 截止（每人可選 5 篇）"}`;
+              `期數：${batchWeek} ｜ ${isVotingLocked ? "🔒 本週已截票鎖定" : "⏰ 週五 18:00 截止（每人可選 6 篇）"}`;
             document.getElementById("lock-banner").style.display = isVotingLocked ? "block" : "none";
           } else {
             document.getElementById("week-info-text").textContent = "目前暫無待投票的候選文章";
