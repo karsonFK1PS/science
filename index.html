@@ -3,356 +3,492 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>鳳溪科學探索站：每日科普、國家創科與盲盒圖鑑</title>
+  <title>鳳溪第一小學 — 每日科學探索站</title>
   <style>
     :root {
       --bg-color: #f0f7ff;
-      --card-front: #ffffff;
-      --primary: #2563eb;
-      --common: #10b981;
-      --rare: #8b5cf6;
-      --legend: #f59e0b;
+      --primary: #1e3a8a;
+      --primary-light: #2563eb;
+      --accent: #0284c7;
       --national-red: #b91c1c;
       --national-gold: #d97706;
+      --green: #16a34a;
     }
-    * { box-sizing: border-box; font-family: "Noto Sans TC", "PingFang HK", sans-serif; }
-    body {
-      margin: 0; padding: 18px; background: var(--bg-color);
-      display: flex; flex-direction: column; align-items: center; min-height: 100vh;
-    }
-    header { text-align: center; margin-bottom: 20px; width: 100%; max-width: 1080px; }
-    h1 { color: #1e3a8a; margin: 0 0 12px 0; font-size: 1.8rem; }
+    * { box-sizing: border-box; font-family: "Noto Sans TC", "PingFang HK", "Microsoft JhengHei", sans-serif; }
+    body { margin: 0; background: var(--bg-color); color: #0f172a; min-height: 100vh; }
 
-    .top-controls { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
-    .stats-bar {
-      background: white; padding: 9px 18px; border-radius: 50px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06); font-weight: bold; color: #334155; font-size: 0.95rem;
+    /* ================= 學生嚴格登入遮罩視窗 ================= */
+    .login-overlay {
+      position: fixed; inset: 0; z-index: 2000;
+      background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%);
+      display: flex; justify-content: center; align-items: center; padding: 20px;
     }
-    .album-btn {
-      background: #1e3a8a; color: white; border: none; padding: 9px 18px;
-      border-radius: 50px; font-weight: bold; font-size: 0.95rem; cursor: pointer;
-      box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25); transition: transform 0.15s;
+    .login-card {
+      background: white; width: 100%; max-width: 420px; border-radius: 26px;
+      padding: 36px 30px; box-shadow: 0 24px 48px rgba(0,0,0,0.25); text-align: center;
     }
-    .album-btn:hover { transform: scale(1.03); }
+    .login-card h1 { color: var(--primary); font-size: 1.5rem; margin: 8px 0 6px 0; }
+    .login-card p { color: #64748b; font-size: 0.92rem; margin: 0 0 22px 0; }
+    .input-group { text-align: left; margin-bottom: 15px; }
+    .input-group label { display: block; font-weight: bold; font-size: 0.9rem; color: #334155; margin-bottom: 6px; }
+    .input-group input {
+      width: 100%; padding: 12px 14px; border: 1.5px solid #cbd5e1; border-radius: 12px;
+      font-size: 1rem; outline: none;
+    }
+    .input-group input:focus { border-color: var(--primary-light); }
+    .login-btn {
+      width: 100%; padding: 13px; border: none; border-radius: 12px;
+      background: var(--primary-light); color: white; font-size: 1.06rem; font-weight: bold;
+      cursor: pointer; margin-top: 6px; transition: background 0.2s;
+    }
+    .login-btn:hover { background: var(--primary); }
+    .login-btn:disabled { background: #94a3b8; cursor: not-allowed; }
+    .login-err {
+      background: #fee2e2; color: #dc2626; padding: 10px; border-radius: 10px;
+      font-size: 0.9rem; margin-top: 14px; display: none; font-weight: bold;
+    }
 
-    /* 雙欄響應式主佈局 */
-    .layout-grid {
-      width: 100%; max-width: 1080px;
-      display: grid; grid-template-columns: 1fr 330px; gap: 22px; align-items: start;
+    /* ================= 頂部導航列 ================= */
+    .top-nav {
+      background: white; border-bottom: 1px solid #e2e8f0;
+      padding: 12px 20px; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
     }
-    @media (max-width: 860px) {
-      .layout-grid { grid-template-columns: 1fr; }
+    .nav-inner {
+      max-width: 1120px; margin: 0 auto;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
     }
-    .main-col { display: flex; flex-direction: column; gap: 22px; }
+    .brand-title { font-size: 1.25rem; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+    .student-badge-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .student-pill {
+      background: #eff6ff; color: var(--primary); border: 1.5px solid #bfdbfe;
+      padding: 6px 14px; border-radius: 50px; font-weight: bold; font-size: 0.9rem;
+    }
+    .logout-btn {
+      background: #f1f5f9; border: 1.5px solid #cbd5e1; color: #475569;
+      padding: 6px 13px; border-radius: 50px; font-weight: bold; font-size: 0.85rem; cursor: pointer;
+    }
+    .logout-btn:hover { background: #e2e8f0; }
 
-    /* ================= 置頂：國家航天與創科焦點特別外框 ================= */
+    /* ================= 主體雙欄佈局 ================= */
+    .main-grid {
+      max-width: 1120px; margin: 22px auto 50px auto; padding: 0 16px;
+      display: grid; grid-template-columns: 1fr 355px; gap: 22px; align-items: start;
+    }
+    @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+    .left-col { display: flex; flex-direction: column; gap: 22px; }
+    .right-col { display: flex; flex-direction: column; gap: 22px; position: sticky; top: 74px; }
+    @media (max-width: 900px) { .right-col { position: static; } }
+
+    /* ================= 置頂：國家航天與創科焦點 ================= */
     .national-card {
-      background: linear-gradient(180deg, #fffbeb 0%, #ffffff 28%);
+      background: linear-gradient(180deg, #fffbeb 0%, #ffffff 26%);
       border-radius: 24px; padding: 24px;
       border: 3px solid var(--national-gold);
       box-shadow: 0 12px 28px rgba(185, 28, 28, 0.12);
-      position: relative;
+    }
+    .national-header-bar {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;
     }
     .national-banner {
       display: inline-flex; align-items: center; gap: 6px;
       background: linear-gradient(90deg, #b91c1c, #dc2626);
       color: #fef3c7; padding: 6px 14px; border-radius: 20px;
-      font-weight: bold; font-size: 0.88rem; margin-bottom: 12px;
-      box-shadow: 0 3px 8px rgba(185, 28, 28, 0.25);
+      font-weight: bold; font-size: 0.88rem;
     }
 
-    /* ================= 一般每日科學頭條卡片 ================= */
-    .news-section {
+    /* ================= 每日科學新聞閱讀區 ================= */
+    .news-card {
       background: white; border-radius: 24px; padding: 24px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.07); border-top: 6px solid #0284c7;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.06); border-top: 6px solid var(--accent);
     }
-    .news-top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-    .news-tag { background: #e0f2fe; color: #0369a1; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; }
-    .news-tabs { display: flex; gap: 6px; }
-    .news-tab-btn {
-      padding: 5px 12px; border-radius: 12px; border: 1.5px solid #cbd5e1;
-      background: #f8fafc; font-weight: bold; color: #475569; cursor: pointer; font-size: 0.85rem;
+    .news-header-bar {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;
     }
-    .news-tab-btn.active { background: #0284c7; color: white; border-color: #0284c7; }
+    .mode-badge {
+      background: #e0f2fe; color: #0369a1; padding: 5px 13px; border-radius: 20px; font-weight: bold; font-size: 0.86rem;
+    }
+    .mode-badge.makeup {
+      background: #fef3c7; color: #92400e;
+    }
+    .done-badge {
+      background: #dcfce7; color: #15803d; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.85rem;
+    }
+    .points-hint-badge {
+      background: #eff6ff; color: #1d4ed8; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.84rem;
+    }
+    .points-hint-badge.half {
+      background: #fff7ed; color: #c2410c;
+    }
 
-    .article-title-row { display: flex; align-items: flex-start; gap: 10px; margin: 10px 0 14px 0; }
+    .article-title-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
     .article-emoji { font-size: 2.5rem; line-height: 1; }
-    .article-title { margin: 0; font-size: 1.3rem; color: #0f172a; line-height: 1.4; flex: 1; }
+    .article-title { margin: 0; font-size: 1.32rem; color: #0f172a; line-height: 1.4; flex: 1; }
+    .tts-btn {
+      background: #e0f2fe; border: none; border-radius: 50%; width: 36px; height: 36px;
+      cursor: pointer; font-size: 1.05rem; flex-shrink: 0;
+    }
     .article-body {
       background: #f8fafc; padding: 16px 18px; border-radius: 16px;
-      color: #1e293b; line-height: 1.75; font-size: 1.04rem; margin-bottom: 12px;
+      color: #1e293b; line-height: 1.8; font-size: 1.05rem; margin-bottom: 14px;
       border: 1px solid #e2e8f0;
     }
     .article-body p { margin: 0 0 10px 0; }
     .article-body p:last-child { margin-bottom: 0; }
 
-    /* 資訊來源標示與連結列 */
     .source-bar {
       display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
-      background: #f1f5f9; padding: 8px 14px; border-radius: 12px;
-      font-size: 0.86rem; color: #475569; margin-bottom: 14px;
+      background: #f1f5f9; padding: 9px 14px; border-radius: 12px;
+      font-size: 0.86rem; color: #475569; margin-bottom: 16px;
     }
-    .source-link {
-      color: #0284c7; font-weight: bold; text-decoration: none;
-      display: inline-flex; align-items: center; gap: 4px;
-    }
+    .source-link { color: var(--accent); font-weight: bold; text-decoration: none; }
     .source-link:hover { text-decoration: underline; }
 
-    /* 讀後 MC 小測 */
-    .quiz-block { border-top: 1.5px dashed #cbd5e1; padding-top: 14px; margin-top: 12px; }
+    /* ================= 讀後 MC 小測與積分反饋 ================= */
+    .quiz-section { border-top: 1.5px dashed #cbd5e1; padding-top: 16px; }
+    .quiz-block { margin-bottom: 16px; }
     .quiz-q { font-weight: bold; color: #0f172a; margin-bottom: 9px; font-size: 1.02rem; }
     .quiz-opts { display: flex; flex-direction: column; gap: 8px; }
     .quiz-opt {
       padding: 11px 14px; border: 1.5px solid #cbd5e1; border-radius: 12px;
       background: white; text-align: left; cursor: pointer; font-size: 0.96rem; transition: all 0.15s;
     }
-    .quiz-opt:hover:not(:disabled) { border-color: #0284c7; background: #f0f9ff; }
-    .quiz-opt.correct { background: #dcfce7; border-color: #16a34a; color: #14532d; font-weight: bold; }
+    .quiz-opt:hover:not(:disabled) { border-color: var(--accent); background: #f0f9ff; }
+    .quiz-opt.correct { background: #dcfce7; border-color: var(--green); color: #14532d; font-weight: bold; }
     .quiz-opt.wrong { background: #fee2e2; border-color: #dc2626; color: #7f1d1d; }
-    .quiz-exp { font-size: 0.92rem; color: #854d0e; background: #fefce8; padding: 10px 14px; border-radius: 10px; margin-top: 8px; display: none; border-left: 4px solid #eab308; }
+    .quiz-exp {
+      font-size: 0.92rem; color: #854d0e; background: #fefce8;
+      padding: 10px 14px; border-radius: 10px; margin-top: 8px; display: none; border-left: 4px solid #eab308;
+    }
+    .score-toast {
+      background: #eff6ff; border: 1.5px solid #93c5fd; color: #1e3a8a;
+      padding: 12px 16px; border-radius: 14px; font-weight: bold; text-align: center;
+      margin-top: 12px; display: none;
+    }
 
-    /* ================= 右側邊欄：昔日科普文庫 ================= */
-    .sidebar {
+    /* ================= 右側 1：雙榮譽排行榜 ================= */
+    .panel-box {
       background: white; border-radius: 24px; padding: 20px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.06); border-top: 6px solid #4f46e5;
-      position: sticky; top: 18px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.06);
     }
-    .sidebar h3 { margin: 0 0 12px 0; color: #1e1b4b; font-size: 1.15rem; display: flex; align-items: center; gap: 6px; }
-    .date-filter-box {
-      display: flex; gap: 6px; margin-bottom: 14px;
+    .panel-box.rank-panel { border-top: 6px solid #f59e0b; }
+    .panel-box.archive-panel { border-top: 6px solid #4f46e5; }
+
+    .rank-tabs { display: flex; gap: 6px; margin-bottom: 14px; background: #f1f5f9; padding: 4px; border-radius: 12px; }
+    .rank-tab {
+      flex: 1; padding: 8px 6px; border: none; border-radius: 9px; background: transparent;
+      font-weight: bold; font-size: 0.88rem; color: #475569; cursor: pointer; transition: all 0.15s;
     }
-    .date-input {
-      flex: 1; padding: 8px 10px; border: 1.5px solid #cbd5e1; border-radius: 10px;
-      font-size: 0.9rem; color: #334155;
+    .rank-tab.active { background: white; color: #b45309; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+
+    .rank-list { display: flex; flex-direction: column; gap: 7px; }
+    .rank-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 11px; border-radius: 11px; background: #f8fafc; font-size: 0.9rem;
     }
-    .reset-date-btn {
-      padding: 8px 12px; background: #eef2ff; color: #4338ca; border: none;
+    .rank-row.is-me { background: #fef3c7; border: 1.5px solid #f59e0b; font-weight: bold; }
+    .rank-left { display: flex; align-items: center; gap: 8px; }
+    .rank-num {
+      width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; color: #334155;
+      display: inline-flex; justify-content: center; align-items: center; font-size: 0.8rem; font-weight: bold;
+    }
+    .rank-row:nth-child(1) .rank-num { background: #f59e0b; color: white; }
+    .rank-row:nth-child(2) .rank-num { background: #94a3b8; color: white; }
+    .rank-row:nth-child(3) .rank-num { background: #b45309; color: white; }
+    .rank-val { font-weight: bold; color: #1e3a8a; }
+
+    .my-rank-footer {
+      margin-top: 12px; padding: 11px 14px; border-radius: 12px;
+      background: #1e3a8a; color: white; font-size: 0.88rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    /* ================= 右側 2：昔日科普文庫 ================= */
+    .date-filter-box { display: flex; gap: 6px; margin-bottom: 12px; }
+    .date-input { flex: 1; padding: 7px 10px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 0.88rem; }
+    .reset-btn {
+      padding: 7px 12px; background: #eef2ff; color: #4338ca; border: none;
       border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 0.85rem;
     }
-    .archive-list {
-      max-height: 520px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
-    }
+    .archive-list { max-height: 360px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
     .archive-item {
       padding: 10px 12px; border-radius: 12px; border: 1.5px solid #e2e8f0;
-      background: #f8fafc; cursor: pointer; transition: all 0.15s; text-align: left;
+      background: #f8fafc; cursor: pointer; text-align: left; transition: all 0.15s;
     }
     .archive-item:hover { border-color: #4f46e5; background: #eef2ff; }
     .archive-item.active { border-color: #4f46e5; background: #e0e7ff; }
     .archive-item.is-national { border-left: 4px solid #dc2626; }
     .archive-meta { font-size: 0.78rem; color: #64748b; display: flex; justify-content: space-between; margin-bottom: 3px; }
-    .archive-item-title { font-size: 0.92rem; font-weight: bold; color: #1e293b; line-height: 1.35; }
-
-    /* ================= 盲盒抽卡區 ================= */
-    .blind-box {
-      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-      border-radius: 24px; padding: 34px 24px; text-align: center; color: white;
-      box-shadow: 0 15px 30px rgba(37, 99, 235, 0.25); cursor: pointer; transition: transform 0.25s;
-    }
-    .blind-box:hover { transform: translateY(-4px); }
-    .box-icon { font-size: 4.2rem; margin-bottom: 8px; animation: bounce 2s infinite; }
-    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
-    .card {
-      background: var(--card-front); border-radius: 24px; padding: 24px;
-      box-shadow: 0 12px 28px rgba(0,0,0,0.1); border: 4px solid var(--common); display: none;
-    }
-    .card.rarity-實驗級 { border-color: var(--rare); }
-    .card.rarity-宇宙級 { border-color: var(--legend); }
-    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .badge { padding: 4px 12px; border-radius: 20px; color: white; font-size: 0.85rem; font-weight: bold; background: var(--common); }
-    .rarity-實驗級 .badge { background: var(--rare); }
-    .rarity-宇宙級 .badge { background: var(--legend); }
-    .emoji-hero { font-size: 3.8rem; text-align: center; margin: 8px 0; }
-    .question-box { font-size: 1.18rem; font-weight: bold; color: #0f172a; line-height: 1.5; margin-bottom: 16px; display: flex; gap: 8px; }
-    .tts-btn { background: #e0f2fe; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; font-size: 1rem; flex-shrink: 0; }
-    .options { display: flex; flex-direction: column; gap: 10px; }
-    .opt-btn { padding: 13px 16px; border: 2px solid #e2e8f0; border-radius: 14px; background: #f8fafc; text-align: left; font-size: 1.02rem; cursor: pointer; font-weight: 500; }
-    .opt-btn.correct { background: #dcfce7; border-color: #16a34a; color: #14532d; font-weight: bold; }
-    .opt-btn.wrong { background: #fee2e2; border-color: #dc2626; color: #7f1d1d; }
-    .explanation-box { margin-top: 16px; padding: 14px; background: #fefce8; border-left: 5px solid #eab308; border-radius: 12px; display: none; line-height: 1.6; }
-    .next-btn { margin-top: 16px; width: 100%; padding: 14px; border: none; border-radius: 14px; background: var(--primary); color: white; font-size: 1.08rem; font-weight: bold; cursor: pointer; display: none; }
-
-    /* ================= 圖鑑牆彈窗 ================= */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7);
-      display: none; justify-content: center; align-items: center; z-index: 1000; padding: 16px;
-    }
-    .modal-content {
-      background: #f8fafc; width: 100%; max-width: 720px; max-height: 88vh;
-      border-radius: 24px; display: flex; flex-direction: column; overflow: hidden;
-    }
-    .modal-header { background: white; padding: 16px 22px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
-    .close-btn { background: #f1f5f9; border: none; width: 34px; height: 34px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; font-weight: bold; }
-    .filter-bar { display: flex; gap: 8px; padding: 12px 22px; background: white; border-bottom: 1px solid #e2e8f0; overflow-x: auto; }
-    .filter-btn { padding: 6px 14px; border-radius: 20px; border: 1.5px solid #cbd5e1; background: white; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
-    .filter-btn.active { background: #1e3a8a; color: white; border-color: #1e3a8a; }
-    .album-grid { padding: 18px 22px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
-    .mini-card { background: white; border-radius: 16px; padding: 12px 10px; text-align: center; border: 3px solid var(--common); cursor: pointer; }
-    .mini-card.rarity-實驗級 { border-color: var(--rare); }
-    .mini-card.rarity-宇宙級 { border-color: var(--legend); }
-    .mini-card.locked { background: #e2e8f0; border-color: #cbd5e1; cursor: default; }
-    .mini-card.locked .mini-emoji { filter: brightness(0) opacity(0.28); }
-    .mini-emoji { font-size: 2.5rem; margin: 6px 0; }
-    .mini-title { font-size: 0.85rem; font-weight: bold; color: #1e293b; }
-    .detail-view { padding: 22px; overflow-y: auto; display: none; background: white; }
-    .back-grid-btn { background: #eff6ff; color: var(--primary); border: none; padding: 8px 14px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 14px; }
-    .detail-answer { background: #dcfce7; color: #14532d; padding: 12px; border-radius: 12px; font-weight: bold; margin: 12px 0; }
-    .loading { color: #64748b; font-weight: bold; margin-top: 40px; }
+    .archive-title { font-size: 0.9rem; font-weight: bold; color: #1e293b; line-height: 1.35; }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>🔬 鳳溪科學探索站：每日科普與盲盒</h1>
-    <div class="top-controls">
-      <div class="stats-bar">📚 盲盒圖鑑：<span id="unlocked-count">0</span> / <span id="total-count">0</span></div>
-      <button class="album-btn" onclick="openAlbum()">📖 我的科學圖鑑牆</button>
+  <!-- ==================== 學生嚴格登入畫面 ==================== -->
+  <div class="login-overlay" id="login-overlay">
+    <div class="login-card">
+      <div style="font-size: 3.4rem;">🔬</div>
+      <h1>鳳溪第一小學科學探索站</h1>
+      <p>請使用學校學生帳號與密碼登入閱讀每日科普</p>
+
+      <form onsubmit="handleStudentLogin(event)">
+        <div class="input-group">
+          <label for="stu-account">學生帳號（例如：B23001 或 B23001@fk1ps.hk）</label>
+          <input type="text" id="stu-account" placeholder="請輸入學生編號或學校電郵" required>
+        </div>
+        <div class="input-group">
+          <label for="stu-pwd">登入密碼（出生日期 YYYYMMDD）</label>
+          <input type="password" id="stu-pwd" placeholder="例如：20171116" required>
+        </div>
+        <button type="submit" class="login-btn" id="stu-login-btn">登入開始探索 🚀</button>
+      </form>
+      <div class="login-err" id="stu-login-err"></div>
     </div>
-  </header>
+  </div>
 
-  <div id="loading-msg" class="loading">⏳ 正在載入國家創科焦點、每日科學頭條與盲盒題庫...</div>
-
-  <div class="layout-grid" id="main-layout" style="display:none;">
-    <!-- ================= 左側主閱讀區 ================= -->
-    <div class="main-col">
-
-      <!-- 1. 每週置頂：國家航天與創科焦點 -->
-      <section class="national-card" id="national-section" style="display:none;">
-        <div class="national-banner">🚀 國家航天與創科焦點（本週置頂精選）</div>
-        <div id="national-content"></div>
-      </section>
-
-      <!-- 2. 每日科學新聞 / 選讀舊文閱讀區 -->
-      <section class="news-section" id="news-section" style="display:none;">
-        <div class="news-top-bar">
-          <span class="news-tag" id="reading-mode-badge">📰 今日科學頭條 (<span id="news-date"></span>)</span>
-          <div class="news-tabs" id="news-tabs"></div>
-        </div>
-        <div id="active-news-content"></div>
-      </section>
-
-      <!-- 3. 十萬個為什麼科普盲盒 -->
-      <section>
-        <div class="blind-box" id="blind-box" onclick="drawCard()">
-          <div class="box-icon">🎁</div>
-          <h2 style="margin:0 0 8px 0;">開啟十萬個為什麼盲盒！</h2>
-          <p style="margin:0; opacity:0.9;">隨機抽取生活級、實驗級或宇宙級科學知識卡</p>
-        </div>
-
-        <div class="card" id="science-card">
-          <div class="card-header">
-            <span class="badge" id="card-rarity">生活級</span>
-            <span style="color:#64748b; font-weight:bold; font-size:0.9rem;" id="card-category">分類</span>
-          </div>
-          <div class="emoji-hero" id="card-emoji">🧅</div>
-          <div class="question-box">
-            <button class="tts-btn" onclick="speakCard(currentCard, true)" title="粵語朗讀">🔊</button>
-            <span id="card-question"></span>
-          </div>
-          <div class="options" id="options-container"></div>
-          <div class="explanation-box" id="explanation-box">
-            <strong>💡 科學大揭秘：</strong>
-            <p id="card-explanation" style="margin: 6px 0 0 0;"></p>
-          </div>
-          <button class="next-btn" id="next-btn" onclick="resetToBox()">🎁 再抽一個盲盒</button>
-        </div>
-      </section>
-    </div>
-
-    <!-- ================= 右側邊欄：昔日科普文庫 ================= -->
-    <aside class="sidebar">
-      <h3>📅 昔日科普文庫</h3>
-      <div class="date-filter-box">
-        <input type="date" id="archive-date-picker" class="date-input" onchange="filterArchiveByDate()">
-        <button class="reset-date-btn" onclick="resetArchiveFilter()">全部</button>
+  <!-- ==================== 頂部導航列 ==================== -->
+  <nav class="top-nav" id="top-nav" style="display:none;">
+    <div class="nav-inner">
+      <div class="brand-title">🔬 鳳溪第一小學 — 每日科學探索站</div>
+      <div class="student-badge-bar">
+        <span class="student-pill" id="student-info-pill">👤 載入中...</span>
+        <button class="logout-btn" onclick="handleStudentLogout()">登出</button>
       </div>
-      <div class="archive-list" id="archive-list"></div>
+    </div>
+  </nav>
+
+  <!-- ==================== 主閱讀與排行榜雙欄 ==================== -->
+  <div class="main-grid" id="main-grid" style="display:none;">
+    <!-- 左側：置頂國家創科 + 每日科學頭條/舊文 -->
+    <div class="left-col">
+      <!-- 1. 置頂：國家航天與創科焦點（7天置頂享滿分25分） -->
+      <section class="national-card" id="national-section" style="display:none;">
+        <div class="national-header-bar">
+          <span class="national-banner">🚀 國家航天與創科焦點（本週置頂精選）</span>
+          <span class="points-hint-badge" id="national-status-badge">⭐ 置頂期內滿分 25 分</span>
+        </div>
+        <div id="national-container"></div>
+      </section>
+
+      <!-- 2. 今日科學頭條 / 昔日重溫閱讀區 -->
+      <section class="news-card" id="news-section">
+        <div class="news-header-bar">
+          <span class="mode-badge" id="reading-mode-badge">📰 今日科學頭條</span>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <span class="points-hint-badge" id="points-hint-badge">⭐ 準時閱讀滿分 25 分</span>
+            <span class="done-badge" id="article-done-badge" style="display:none;">✅ 你已完成此篇挑戰</span>
+          </div>
+        </div>
+        <div id="active-article-container"></div>
+      </section>
+    </div>
+
+    <!-- 右側：雙排行榜 + 昔日科普文庫 -->
+    <aside class="right-col">
+      <!-- 模組 A：閱讀與問答雙排行榜 -->
+      <div class="panel-box rank-panel">
+        <div class="rank-tabs">
+          <button class="rank-tab active" id="tab-read-rank" onclick="switchRankTab('READ')">📖 閱讀達人榜</button>
+          <button class="rank-tab" id="tab-quiz-rank" onclick="switchRankTab('QUIZ')">🎯 問答神射手榜</button>
+        </div>
+        <div class="rank-list" id="rank-list"></div>
+        <div class="my-rank-footer" id="my-rank-footer">
+          <span>我的排名：-</span>
+          <span>累計：0 篇 / 0 分</span>
+        </div>
+      </div>
+
+      <!-- 模組 B：昔日科普文庫 -->
+      <div class="panel-box archive-panel">
+        <h3 style="margin:0 0 12px 0; color:#1e1b4b; font-size:1.1rem;">📅 昔日科普文庫</h3>
+        <div class="date-filter-box">
+          <input type="date" id="date-picker" class="date-input" onchange="filterByDate()">
+          <button class="reset-btn" onclick="resetDateFilter()">全部</button>
+        </div>
+        <div class="archive-list" id="archive-list"></div>
+      </div>
     </aside>
   </div>
 
-  <!-- ================= 我的科學圖鑑牆彈窗 ================= -->
-  <div class="modal-overlay" id="album-modal" onclick="if(event.target.id==='album-modal') closeAlbum()">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 style="margin:0; font-size:1.3rem; color:#1e3a8a;">📖 我的科學圖鑑牆 (<span id="modal-progress">0/0</span>)</h2>
-        <button class="close-btn" onclick="closeAlbum()">✕</button>
-      </div>
-      <div class="filter-bar" id="filter-bar">
-        <button class="filter-btn active" onclick="setFilter('ALL', this)">全部</button>
-        <button class="filter-btn" onclick="setFilter('生活級', this)">🟢 生活級</button>
-        <button class="filter-btn" onclick="setFilter('實驗級', this)">🟣 實驗級</button>
-        <button class="filter-btn" onclick="setFilter('宇宙級', this)">🟡 宇宙級</button>
-      </div>
-      <div class="album-grid" id="album-grid"></div>
-      <div class="detail-view" id="detail-view">
-        <button class="back-grid-btn" onclick="showAlbumGrid()">← 返回圖鑑列表</button>
-        <div style="display:flex; justify-content:space-between;">
-          <span class="badge" id="det-rarity">生活級</span>
-          <span style="color:#64748b; font-weight:bold;" id="det-category"></span>
-        </div>
-        <div class="emoji-hero" id="det-emoji">🔬</div>
-        <div class="question-box">
-          <button class="tts-btn" id="det-tts-btn">🔊</button>
-          <span id="det-question"></span>
-        </div>
-        <div class="detail-answer" id="det-answer"></div>
-        <div class="explanation-box" style="display:block;">
-          <strong>💡 科學大揭秘：</strong>
-          <p id="det-explanation" style="margin: 6px 0 0 0;"></p>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <script>
-    // 請貼上你的 Apps Script 網頁應用程式網址
-    const API_URL = "https://script.google.com/macros/s/AKfycbyfx-Oa9pgAyCDdIYvanEEtoVy5Y0zAv2dj-k9vXNWYpbNDybBQs0LnoAmXyTZ8FvlB/exec";
+    // 請貼上你學校 Google Apps Script 部署後的最新 Web App URL
+    const API_URL = "https://script.google.com/macros/s/你的學校部署ID/exec";
 
-    let allCards = [];
+    let currentStudent = JSON.parse(localStorage.getItem("fk1ps_sci_student") || "null");
+    let serverTodayStr = new Date().toISOString().split("T")[0];
     let allNews = [];
-    let currentCard = null;
-    let currentFilter = "ALL";
-    let unlockedIds = JSON.parse(localStorage.getItem("science_unlocked_ids") || "[]");
+    let readLeaderboard = [];
+    let quizLeaderboard = [];
+    let myStats = { readCount: 0, readRank: "-", totalScore: 0, quizRank: "-", completedIds: [] };
+    let activeRankMode = "READ";
+    let currentArticleId = null;
 
-    async function initApp() {
+    window.addEventListener("DOMContentLoaded", () => {
+      if (currentStudent && currentStudent.account) {
+        enterPortal();
+      }
+    });
+
+    async function handleStudentLogin(e) {
+      e.preventDefault();
+      const account = document.getElementById("stu-account").value.trim();
+      const password = document.getElementById("stu-pwd").value.trim();
+      const btn = document.getElementById("stu-login-btn");
+      const errBox = document.getElementById("stu-login-err");
+
+      errBox.style.display = "none";
+      btn.disabled = true;
+      btn.textContent = "正在核對學生名單...";
+
       try {
-        const res = await fetch(API_URL);
+        const res = await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "studentLogin",
+            account: account,
+            password: password
+          })
+        });
+        const data = await res.json();
+
+        if (data.status === "success") {
+          currentStudent = data.student;
+          readLeaderboard = data.readLeaderboard || [];
+          quizLeaderboard = data.quizLeaderboard || [];
+          myStats = data.myStats || myStats;
+          localStorage.setItem("fk1ps_sci_student", JSON.stringify(currentStudent));
+          enterPortal();
+        } else {
+          errBox.textContent = "❌ " + (data.message || "登入失敗");
+          errBox.style.display = "block";
+        }
+      } catch (err) {
+        errBox.textContent = "❌ 連線失敗，請檢查網絡或稍後再試。";
+        errBox.style.display = "block";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "登入開始探索 🚀";
+      }
+    }
+
+    function handleStudentLogout() {
+      window.speechSynthesis.cancel();
+      localStorage.removeItem("fk1ps_sci_student");
+      currentStudent = null;
+      document.getElementById("top-nav").style.display = "none";
+      document.getElementById("main-grid").style.display = "none";
+      document.getElementById("login-overlay").style.display = "flex";
+      document.getElementById("stu-pwd").value = "";
+    }
+
+    async function enterPortal() {
+      document.getElementById("login-overlay").style.display = "none";
+      document.getElementById("top-nav").style.display = "block";
+      document.getElementById("main-grid").style.display = "grid";
+      document.getElementById("student-info-pill").textContent =
+        `👤 ${currentStudent.className} (${currentStudent.classNum}) ${currentStudent.name}`;
+
+      try {
+        const res = await fetch(`${API_URL}?account=${encodeURIComponent(currentStudent.account)}`);
         const data = await res.json();
         if (data.status === "success") {
-          allCards = data.cards || [];
+          if (data.serverDate) serverTodayStr = data.serverDate;
           allNews = (data.news || []).map(item => ({
             ...item,
             cleanDate: String(item.publish_date).split("T")[0]
           }));
+          readLeaderboard = data.readLeaderboard || readLeaderboard;
+          quizLeaderboard = data.quizLeaderboard || quizLeaderboard;
+          myStats = data.myStats || myStats;
 
-          document.getElementById("total-count").textContent = allCards.length;
-          updateStats();
+          const pinnedArticle = renderNationalPinned();
+          // 找出非置頂的最新一篇作為今日頭條，若無則取全部最新一篇
+          const dailyCandidates = pinnedArticle
+            ? allNews.filter(a => a.news_id !== pinnedArticle.news_id)
+            : allNews;
 
-          if (allNews.length > 0) {
-            renderNationalPinned();
-            renderLatestNewsTabs();
-            renderArchiveList(allNews);
-            document.getElementById("news-section").style.display = "block";
+          if (dailyCandidates.length > 0) {
+            selectArticleToRead(dailyCandidates[0]);
+          } else if (allNews.length > 0) {
+            selectArticleToRead(allNews[0]);
+          } else {
+            document.getElementById("active-article-container").innerHTML =
+              `<p style="color:#64748b; text-align:center; padding:30px;">暫無已發布的科學新聞，敬請期待！</p>`;
           }
-
-          document.getElementById("loading-msg").style.display = "none";
-          document.getElementById("main-layout").style.display = "grid";
+          renderArchiveList(allNews);
+          renderLeaderboard();
         }
       } catch (err) {
-        document.getElementById("loading-msg").textContent = "❌ 載入失敗，請檢查 API_URL 是否正確。";
+        console.error(err);
       }
     }
 
-    // 共用文章與讀後 MC 渲染器（支援來源標示、來源連結與多段落）
-    function buildArticleHTML(article, containerEl) {
+    // 判斷文章是否屬於「準時閱讀或7天置頂期內」
+    function isArticleTimely(article) {
+      if (!article || !article.cleanDate) return true;
+      if (article.cleanDate === serverTodayStr) return true;
+      const isNat = String(article.tag || "").trim().toUpperCase() === "NATIONAL";
+      if (isNat) {
+        const pubMs = Date.parse(article.cleanDate + "T00:00:00Z");
+        const todayMs = Date.parse(serverTodayStr + "T00:00:00Z");
+        const diffDays = Math.floor((todayMs - pubMs) / (24 * 60 * 60 * 1000));
+        if (diffDays >= 0 && diffDays < 7) return true;
+      }
+      return false;
+    }
+
+    // 置頂顯示 7 天內的國家航天與創科專題
+    function renderNationalPinned() {
+      const pinned = allNews.find(item => {
+        const isNat = String(item.tag || "").trim().toUpperCase() === "NATIONAL";
+        return isNat && isArticleTimely(item);
+      });
+
+      if (pinned) {
+        const isDone = (myStats.completedIds || []).includes(pinned.news_id);
+        document.getElementById("national-status-badge").textContent =
+          isDone ? "✅ 你已完成此篇置頂挑戰" : "⭐ 置頂期內滿分 25 分";
+        buildArticleAndQuiz(pinned, document.getElementById("national-container"), true);
+        document.getElementById("national-section").style.display = "block";
+        return pinned;
+      }
+      return null;
+    }
+
+    // 切換主閱讀區文章
+    function selectArticleToRead(article) {
+      currentArticleId = article.news_id;
+      const timely = isArticleTimely(article);
+
+      const modeBadge = document.getElementById("reading-mode-badge");
+      const ptsBadge = document.getElementById("points-hint-badge");
+
+      if (timely) {
+        modeBadge.textContent = `📰 今日科學頭條 (${article.cleanDate})`;
+        modeBadge.classList.remove("makeup");
+        ptsBadge.textContent = "⭐ 準時閱讀滿分 25 分";
+        ptsBadge.classList.remove("half");
+      } else {
+        modeBadge.textContent = `📚 昔日科普文庫 (${article.cleanDate})`;
+        modeBadge.classList.add("makeup");
+        ptsBadge.textContent = "⏳ 補讀模式（每題 5 分，滿分 10 分）";
+        ptsBadge.classList.add("half");
+      }
+
+      const isDone = (myStats.completedIds || []).includes(article.news_id);
+      document.getElementById("article-done-badge").style.display = isDone ? "inline-block" : "none";
+
+      buildArticleAndQuiz(article, document.getElementById("active-article-container"), false);
+    }
+
+    function buildArticleAndQuiz(article, containerEl, isPinnedBox) {
       containerEl.innerHTML = "";
 
-      // 標題列 + 粵語朗讀
       const titleRow = document.createElement("div");
       titleRow.className = "article-title-row";
       titleRow.innerHTML = `
         <span class="article-emoji">${article.emoji || "🔬"}</span>
-        <h2 class="article-title">${article.title}</h2>
+        <h2 class="article-title">${escapeHtml(article.title)}</h2>
       `;
       const ttsBtn = document.createElement("button");
       ttsBtn.className = "tts-btn";
@@ -362,158 +498,222 @@
       titleRow.appendChild(ttsBtn);
       containerEl.appendChild(titleRow);
 
-      // 分段內文
       const bodyDiv = document.createElement("div");
       bodyDiv.className = "article-body";
-      const paragraphs = String(article.summary).split(/\n+/).filter(p => p.trim());
-      paragraphs.forEach(pText => {
+      String(article.summary || "").split(/\n+/).filter(p => p.trim()).forEach(pText => {
         const p = document.createElement("p");
         p.textContent = pText.trim();
         bodyDiv.appendChild(p);
       });
       containerEl.appendChild(bodyDiv);
 
-      // 資訊來源標示與原文連結
       const sourceBar = document.createElement("div");
       sourceBar.className = "source-bar";
-      const srcName = article.source_name || "科學新聞資料庫";
-      const srcUrl = article.source_url || "#";
+      const srcName = article.source_name || "官方科普資料庫";
+      const srcUrl = String(article.source_url || "");
       sourceBar.innerHTML = `
-        <span>📰 資訊來源：<strong>${srcName}</strong>（發布日期：${article.cleanDate}）</span>
+        <span>📰 資訊來源：<strong>${escapeHtml(srcName)}</strong>（${article.cleanDate}）</span>
         ${srcUrl.startsWith("http") ? `<a class="source-link" href="${srcUrl}" target="_blank" rel="noopener noreferrer">🔗 查看原文報導 ↗</a>` : ""}
       `;
       containerEl.appendChild(sourceBar);
 
-      // 讀後 MC 小測
+      const quizSec = document.createElement("div");
+      quizSec.className = "quiz-section";
+      const toastEl = document.createElement("div");
+      toastEl.className = "score-toast";
+
+      let answeredCount = 0;
+      let correctCount = 0;
+      const totalQs = [1, 2].filter(n => article[`q${n}_question`]).length;
+
       [1, 2].forEach(qNum => {
         const qText = article[`q${qNum}_question`];
         if (!qText) return;
 
         const block = document.createElement("div");
         block.className = "quiz-block";
-        block.innerHTML = `<div class="quiz-q">📝 讀後挑戰 ${qNum}：${qText}</div>`;
+        block.innerHTML = `<div class="quiz-q">📝 讀後挑戰 ${qNum}：${escapeHtml(qText)}</div>`;
 
         const optsDiv = document.createElement("div");
         optsDiv.className = "quiz-opts";
         const expDiv = document.createElement("div");
         expDiv.className = "quiz-exp";
-        expDiv.textContent = `💡 科學解析：${article[`q${qNum}_explanation`]}`;
+        expDiv.textContent = `💡 內文依據解析：${article[`q${qNum}_explanation`]}`;
 
         ["A", "B", "C"].forEach(key => {
           const optBtn = document.createElement("button");
           optBtn.className = "quiz-opt";
           optBtn.textContent = `${key}. ${article[`q${qNum}_opt${key}`]}`;
-          optBtn.onclick = () => {
+          optBtn.onclick = async () => {
             optsDiv.querySelectorAll(".quiz-opt").forEach(b => b.disabled = true);
             const ans = String(article[`q${qNum}_answer`]).trim().toUpperCase();
             if (key === ans) {
               optBtn.classList.add("correct");
+              correctCount++;
             } else {
               optBtn.classList.add("wrong");
               const cIdx = ["A", "B", "C"].indexOf(ans);
               if (cIdx >= 0) optsDiv.children[cIdx].classList.add("correct");
             }
             expDiv.style.display = "block";
+            answeredCount++;
+
+            if (answeredCount === totalQs) {
+              toastEl.style.display = "block";
+              toastEl.textContent = "⏳ 正在記錄閱讀成績並更新全校排行榜...";
+              await submitQuizResult(article.news_id, correctCount, toastEl, isPinnedBox);
+            }
           };
           optsDiv.appendChild(optBtn);
         });
 
         block.appendChild(optsDiv);
         block.appendChild(expDiv);
-        containerEl.appendChild(block);
+        quizSec.appendChild(block);
       });
+
+      quizSec.appendChild(toastEl);
+      containerEl.appendChild(quizSec);
     }
 
-    // 1. 檢查並置頂顯示 7 天內的國家航天與創科文章
-    function renderNationalPinned() {
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    async function submitQuizResult(newsId, correctCount, toastEl, isPinnedBox) {
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "submitQuiz",
+            account: currentStudent.account,
+            name: currentStudent.name,
+            className: currentStudent.className,
+            classNum: currentStudent.classNum,
+            newsId: newsId,
+            correctCount: correctCount
+          })
+        });
+        const data = await res.json();
+        if (data.status === "success") {
+          readLeaderboard = data.readLeaderboard || readLeaderboard;
+          quizLeaderboard = data.quizLeaderboard || quizLeaderboard;
+          myStats = data.myStats || myStats;
 
-      const pinned = allNews.find(item => {
-        const isNat = String(item.tag || "").trim().toUpperCase() === "NATIONAL";
-        const d = new Date(item.cleanDate);
-        return isNat && !isNaN(d.getTime()) && d >= sevenDaysAgo;
-      });
+          if (data.alreadyCompleted) {
+            toastEl.textContent = `✅ 本篇答對 ${correctCount} 題（你之前已完成過此篇挑戰，不重複計分）`;
+          } else {
+            const modeDesc = data.isTimely ? "準時閱讀" : "補讀舊文半價";
+            toastEl.textContent = `🎉 挑戰完成（${modeDesc}）！本篇答對 ${correctCount} 題，獲得 +${data.earnedScore} 積分！`;
+          }
 
-      if (pinned) {
-        buildArticleHTML(pinned, document.getElementById("national-content"));
-        document.getElementById("national-section").style.display = "block";
+          if (isPinnedBox) {
+            document.getElementById("national-status-badge").textContent = "✅ 你已完成此篇置頂挑戰";
+          } else if (currentArticleId === newsId) {
+            document.getElementById("article-done-badge").style.display = "inline-block";
+          }
+          renderLeaderboard();
+          renderArchiveList(allNews);
+        }
+      } catch (err) {
+        toastEl.textContent = "⚠️ 網絡暫時繁忙，成績未能同步。";
       }
     }
 
-    // 2. 渲染今日最新頭條分頁標籤
-    function renderLatestNewsTabs() {
-      const tabsEl = document.getElementById("news-tabs");
-      tabsEl.innerHTML = "";
-      const latestTwo = allNews.slice(0, 2);
-
-      latestTwo.forEach((article, idx) => {
-        const btn = document.createElement("button");
-        btn.className = "news-tab-btn" + (idx === 0 ? " active" : "");
-        btn.textContent = `頭條 ${idx + 1}`;
-        btn.onclick = () => {
-          document.querySelectorAll(".news-tab-btn").forEach(b => b.classList.remove("active"));
-          btn.classList.add("active");
-          document.getElementById("reading-mode-badge").innerHTML = `📰 今日科學頭條 (${article.cleanDate})`;
-          buildArticleHTML(article, document.getElementById("active-news-content"));
-        };
-        tabsEl.appendChild(btn);
-      });
-
-      // 預設顯示最新第 1 篇
-      document.getElementById("reading-mode-badge").innerHTML = `📰 今日科學頭條 (${latestTwo[0].cleanDate})`;
-      buildArticleHTML(latestTwo[0], document.getElementById("active-news-content"));
+    function switchRankTab(mode) {
+      activeRankMode = mode;
+      document.getElementById("tab-read-rank").classList.toggle("active", mode === "READ");
+      document.getElementById("tab-quiz-rank").classList.toggle("active", mode === "QUIZ");
+      renderLeaderboard();
     }
 
-    // 3. 右側昔日科普文庫列表與日期篩選
+    function renderLeaderboard() {
+      const listEl = document.getElementById("rank-list");
+      listEl.innerHTML = "";
+      const list = activeRankMode === "READ" ? readLeaderboard : quizLeaderboard;
+      const myAcc = currentStudent.account.toLowerCase();
+
+      if (list.length === 0) {
+        listEl.innerHTML = `<div style="text-align:center; color:#64748b; padding:18px; font-size:0.9rem;">暫未有同學上榜，快完成第一篇閱讀搶佔榜首！</div>`;
+      } else {
+        list.forEach((item, idx) => {
+          const isMe = String(item.account).toLowerCase() === myAcc;
+          const row = document.createElement("div");
+          row.className = "rank-row" + (isMe ? " is-me" : "");
+          const scoreText = activeRankMode === "READ" ? `${item.readCount} 篇` : `${item.totalScore} 分`;
+          row.innerHTML = `
+            <div class="rank-left">
+              <span class="rank-num">${idx + 1}</span>
+              <span>${escapeHtml(item.className)} ${escapeHtml(item.name)}</span>
+            </div>
+            <span class="rank-val">${scoreText}</span>
+          `;
+          listEl.appendChild(row);
+        });
+      }
+
+      const footer = document.getElementById("my-rank-footer");
+      if (activeRankMode === "READ") {
+        footer.innerHTML = `
+          <span>🏅 我的閱讀排名：<strong>${myStats.readRank}</strong></span>
+          <span>已讀 <strong>${myStats.readCount}</strong> 篇</span>
+        `;
+      } else {
+        footer.innerHTML = `
+          <span>🎯 我的問答排名：<strong>${myStats.quizRank}</strong></span>
+          <span>總分 <strong>${myStats.totalScore}</strong> 分</span>
+        `;
+      }
+    }
+
     function renderArchiveList(list) {
       const listEl = document.getElementById("archive-list");
       listEl.innerHTML = "";
+      const completedSet = new Set(myStats.completedIds || []);
 
       if (list.length === 0) {
-        listEl.innerHTML = `<div style="color:#64748b; font-size:0.9rem; text-align:center; padding:20px;">該日期暫無科學文章記錄</div>`;
+        listEl.innerHTML = `<div style="text-align:center; color:#64748b; padding:16px; font-size:0.88rem;">該日期暫無文章記錄</div>`;
         return;
       }
 
       list.forEach(article => {
-        const isNat = String(article.tag || "").trim().toUpperCase() === "NATIONAL";
+        const isNat = String(article.tag || "").toUpperCase() === "NATIONAL";
+        const isDone = completedSet.has(article.news_id);
+        const timely = isArticleTimely(article);
+
+        let statusTag = "";
+        if (isDone) statusTag = "✅ 已完成";
+        else if (timely) statusTag = "🔥 滿分25分";
+        else statusTag = "⏳ 補讀10分";
+
         const item = document.createElement("button");
-        item.className = "archive-item" + (isNat ? " is-national" : "");
+        item.className = "archive-item" + (isNat ? " is-national" : "") + (article.news_id === currentArticleId ? " active" : "");
         item.innerHTML = `
           <div class="archive-meta">
-            <span>${article.cleanDate}</span>
-            <span>${isNat ? "🚀 國家創科" : (article.source_name || "科普")}</span>
+            <span>${article.cleanDate} ${isNat ? "🚀國家創科" : ""}</span>
+            <span>${statusTag}</span>
           </div>
-          <div class="archive-item-title">${article.emoji || "🔬"} ${article.title}</div>
+          <div class="archive-title">${article.emoji || "🔬"} ${escapeHtml(article.title)}</div>
         `;
         item.onclick = () => {
           window.speechSynthesis.cancel();
-          document.querySelectorAll(".archive-item").forEach(el => el.classList.remove("active"));
-          item.classList.add("active");
-          document.querySelectorAll(".news-tab-btn").forEach(b => b.classList.remove("active"));
-
-          document.getElementById("reading-mode-badge").innerHTML = `📚 昔日重溫 (${article.cleanDate})`;
-          buildArticleHTML(article, document.getElementById("active-news-content"));
+          selectArticleToRead(article);
+          renderArchiveList(list);
           document.getElementById("news-section").scrollIntoView({ behavior: "smooth" });
         };
         listEl.appendChild(item);
       });
     }
 
-    function filterArchiveByDate() {
-      const pickedDate = document.getElementById("archive-date-picker").value;
-      if (!pickedDate) {
+    function filterByDate() {
+      const picked = document.getElementById("date-picker").value;
+      if (!picked) {
         renderArchiveList(allNews);
         return;
       }
-      const filtered = allNews.filter(a => a.cleanDate === pickedDate);
-      renderArchiveList(filtered);
+      renderArchiveList(allNews.filter(a => a.cleanDate === picked));
     }
 
-    function resetArchiveFilter() {
-      document.getElementById("archive-date-picker").value = "";
+    function resetDateFilter() {
+      document.getElementById("date-picker").value = "";
       renderArchiveList(allNews);
-      renderLatestNewsTabs();
+      if (allNews.length > 0) selectArticleToRead(allNews[0]);
     }
 
     function speakText(text) {
@@ -525,130 +725,13 @@
       window.speechSynthesis.speak(utter);
     }
 
-    // 盲盒與圖鑑牆邏輯
-    function drawCard() {
-      const lockedCards = allCards.filter(c => !unlockedIds.includes(String(c.id)));
-      const pool = lockedCards.length > 0 ? lockedCards : allCards;
-      currentCard = pool[Math.floor(Math.random() * pool.length)];
-
-      const cardEl = document.getElementById("science-card");
-      cardEl.className = `card rarity-${currentCard.rarity}`;
-      document.getElementById("card-rarity").textContent = currentCard.rarity;
-      document.getElementById("card-category").textContent = currentCard.category;
-      document.getElementById("card-emoji").textContent = currentCard.emoji || "🔬";
-      document.getElementById("card-question").textContent = currentCard.question;
-
-      const optContainer = document.getElementById("options-container");
-      optContainer.innerHTML = "";
-      ["A", "B", "C"].forEach(key => {
-        const btn = document.createElement("button");
-        btn.className = "opt-btn";
-        btn.textContent = `${key}. ${currentCard["opt" + key]}`;
-        btn.onclick = () => checkAnswer(key, btn);
-        optContainer.appendChild(btn);
-      });
-
-      document.getElementById("explanation-box").style.display = "none";
-      document.getElementById("next-btn").style.display = "none";
-      document.getElementById("blind-box").style.display = "none";
-      cardEl.style.display = "block";
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
     }
-
-    function checkAnswer(selectedKey, clickedBtn) {
-      const buttons = document.querySelectorAll(".opt-btn");
-      buttons.forEach(b => b.disabled = true);
-      const correctKey = String(currentCard.answer).trim().toUpperCase();
-      if (selectedKey === correctKey) {
-        clickedBtn.classList.add("correct");
-      } else {
-        clickedBtn.classList.add("wrong");
-        const idx = ["A", "B", "C"].indexOf(correctKey);
-        if (idx >= 0) buttons[idx].classList.add("correct");
-      }
-      document.getElementById("card-explanation").textContent = currentCard.explanation;
-      document.getElementById("explanation-box").style.display = "block";
-      document.getElementById("next-btn").style.display = "block";
-
-      const cardId = String(currentCard.id);
-      if (!unlockedIds.includes(cardId)) {
-        unlockedIds.push(cardId);
-        localStorage.setItem("science_unlocked_ids", JSON.stringify(unlockedIds));
-        updateStats();
-      }
-    }
-
-    function resetToBox() {
-      window.speechSynthesis.cancel();
-      document.getElementById("science-card").style.display = "none";
-      document.getElementById("blind-box").style.display = "block";
-    }
-
-    function updateStats() {
-      document.getElementById("unlocked-count").textContent = unlockedIds.length;
-      document.getElementById("modal-progress").textContent = `${unlockedIds.length} / ${allCards.length}`;
-    }
-
-    function openAlbum() {
-      if (allCards.length === 0) return;
-      window.speechSynthesis.cancel();
-      updateStats();
-      showAlbumGrid();
-      renderAlbumGrid();
-      document.getElementById("album-modal").style.display = "flex";
-    }
-    function closeAlbum() { window.speechSynthesis.cancel(); document.getElementById("album-modal").style.display = "none"; }
-    function setFilter(rarity, btnEl) {
-      currentFilter = rarity;
-      document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-      btnEl.classList.add("active");
-      showAlbumGrid();
-      renderAlbumGrid();
-    }
-    function showAlbumGrid() {
-      document.getElementById("detail-view").style.display = "none";
-      document.getElementById("filter-bar").style.display = "flex";
-      document.getElementById("album-grid").style.display = "grid";
-    }
-    function renderAlbumGrid() {
-      const grid = document.getElementById("album-grid");
-      grid.innerHTML = "";
-      const filtered = currentFilter === "ALL" ? allCards : allCards.filter(c => c.rarity === currentFilter);
-      filtered.forEach(card => {
-        const isUnlocked = unlockedIds.includes(String(card.id));
-        const item = document.createElement("div");
-        if (isUnlocked) {
-          item.className = `mini-card rarity-${card.rarity}`;
-          item.innerHTML = `<div style="font-size:0.75rem;color:#94a3b8;font-weight:bold;">#${String(card.id).padStart(2,'0')}</div><div class="mini-emoji">${card.emoji || "🔬"}</div><div class="mini-title">${card.question}</div>`;
-          item.onclick = () => openCardDetail(card);
-        } else {
-          item.className = "mini-card locked";
-          item.innerHTML = `<div style="font-size:0.75rem;color:#94a3b8;font-weight:bold;">#${String(card.id).padStart(2,'0')}</div><div class="mini-emoji">${card.emoji || "❓"}</div><div class="mini-title">？？？</div>`;
-        }
-        grid.appendChild(item);
-      });
-    }
-    function openCardDetail(card) {
-      document.getElementById("album-grid").style.display = "none";
-      document.getElementById("filter-bar").style.display = "none";
-      document.getElementById("det-rarity").textContent = card.rarity;
-      document.getElementById("det-category").textContent = card.category;
-      document.getElementById("det-emoji").textContent = card.emoji || "🔬";
-      document.getElementById("det-question").textContent = card.question;
-      const ansKey = String(card.answer).trim().toUpperCase();
-      document.getElementById("det-answer").textContent = `✅ 正確答案：${ansKey}. ${card["opt" + ansKey]}`;
-      document.getElementById("det-explanation").textContent = card.explanation;
-      document.getElementById("det-tts-btn").onclick = () => speakCard(card, false);
-      document.getElementById("detail-view").style.display = "block";
-    }
-    function speakCard(card, isStageMode) {
-      if (!card) return;
-      const textToRead = isStageMode
-        ? (document.getElementById("explanation-box").style.display === "block" ? `科學大揭秘：${card.explanation}` : `${card.question}。A，${card.optA}。B，${card.optB}。C，${card.optC}。`)
-        : `${card.question}。正確答案係 ${card["opt" + String(card.answer).trim().toUpperCase()]}。科學大揭秘：${card.explanation}`;
-      speakText(textToRead);
-    }
-
-    initApp();
   </script>
 </body>
 </html>
